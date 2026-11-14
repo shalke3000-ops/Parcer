@@ -1,0 +1,2034 @@
+<!doctype html>
+<!--
+  Lead Hub — single self-contained page (spec: one HTML file, no build step).
+  This file deliberately exceeds the 800-line soft ceiling: CSS, markup and JS
+  live together by requirement. Sections are delimited with banner comments.
+  Security: data is only ever rendered via textContent; no inline style attrs
+  (strict nonce CSP); external libs are vendored under /static/vendor.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0A0908">
+<meta name="robots" content="noindex, nofollow">
+<title>Lead Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%2317140F'/%3E%3Cg stroke='%23C8A765' stroke-width='1.5'%3E%3Cpath d='M8 22 15 10 24 16 8 22'/%3E%3C/g%3E%3Cg fill='%23C8A765'%3E%3Ccircle cx='8' cy='22' r='2.5'/%3E%3Ccircle cx='15' cy='10' r='2.5'/%3E%3Ccircle cx='24' cy='16' r='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="/static/fonts/ibm-plex-sans-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style nonce="__CSP_NONCE__">
+/* ================================================================== fonts */
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url(/static/fonts/cormorant-garamond-cyrillic-600-normal.woff2) format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url(/static/fonts/cormorant-garamond-latin-600-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url(/static/fonts/ibm-plex-sans-cyrillic-400-normal.woff2) format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url(/static/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url(/static/fonts/ibm-plex-sans-cyrillic-500-normal.woff2) format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url(/static/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url(/static/fonts/ibm-plex-sans-cyrillic-600-normal.woff2) format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url(/static/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ================================================================= tokens */
+:root {
+  /* "onyx & champagne" — dark is the default; every text pair verified ≥ 4.5:1 */
+  --bg: #0A0908; --surface: #121110; --surface-2: #1B1915; --surface-3: #24211C;
+  --text: #F3ECDF; --muted: #A39985;
+  --gold: #D6B676; --gold-deco: #C9A45C; --on-gold: #0A0908;
+  --gold-grad: linear-gradient(100deg, #9A7838 0%, #D6B676 28%, #F6E7BE 48%, #D2AE68 66%, #9A7838 100%);
+  --gold-soft: rgba(214, 182, 118, .14);
+  --line: #24201B; --line-strong: #6A604F;
+  --danger: #E39A84;
+  --st-new: #D6B676; --st-contacted: #9FB3C2; --st-replied: #BFC78E; --st-client: #86C59E; --st-rejected: #A0968A;
+  --rule: rgba(214, 182, 118, .35);
+  --card-bg: linear-gradient(180deg, #141210 0%, #0F0E0C 100%);
+  --shadow-lift: 0 1px 0 rgba(255, 236, 196, .04) inset, 0 24px 48px -24px rgba(0, 0, 0, .9);
+  --glow: radial-gradient(ellipse 60% 70% at 72% 45%, rgba(214, 182, 118, .13), transparent 70%);
+
+  --font-display: "Cormorant Garamond", "Cormorant", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 6px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 72px;
+  --tap: 44px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --ease-expo: cubic-bezier(.16, 1, .3, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --dur: 220ms;
+  --dur-slow: 560ms;
+  --page: 1240px;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #F4EEE2; --surface: #FBF8F2; --surface-2: #ECE4D4; --surface-3: #E3D9C6;
+  --text: #1E1A14; --muted: #5C5345;
+  --gold: #7A5A1C; --gold-deco: #B08D4F; --on-gold: #FBF8F2;
+  --gold-grad: linear-gradient(100deg, #6B4E16 0%, #8C6A2A 45%, #6B4E16 100%);
+  --gold-soft: rgba(122, 90, 28, .10);
+  --line: #DDD3C1; --line-strong: #8F826C;
+  --danger: #9A3B24;
+  --st-new: #7A5A1C; --st-contacted: #35566E; --st-replied: #55602A; --st-client: #2C6A45; --st-rejected: #625A50;
+  --rule: rgba(122, 90, 28, .35);
+  --card-bg: var(--surface);
+  --shadow-lift: 0 18px 40px -26px rgba(60, 40, 10, .35);
+  --glow: radial-gradient(ellipse 60% 70% at 72% 45%, rgba(176, 141, 79, .16), transparent 70%);
+  color-scheme: light;
+}
+
+/* ================================================================== base */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 400 15px/1.55 var(--font-ui);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+[hidden] { display: none !important; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: var(--radius); }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: var(--space-4); top: -60px; z-index: 50; background: var(--gold); color: var(--on-gold); padding: var(--space-2) var(--space-4); border-radius: var(--radius); font-weight: 600; text-decoration: none; }
+.skip:focus { top: var(--space-4); }
+.wrap { max-width: var(--page); margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
+@media (min-width: 768px) { .wrap { padding: 0 var(--space-6); } }
+code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .88em; }
+
+/* ================================================================ buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: var(--tap); padding: 0 var(--space-4);
+  border: 1px solid var(--line-strong); border-radius: var(--radius); background: transparent;
+  font-weight: 500; font-size: 14px; letter-spacing: .01em; text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.btn:hover { border-color: var(--gold); color: var(--gold); }
+.btn:active { background: var(--surface-2); }
+.btn--primary { background: var(--gold-grad); background-size: 200% 100%; background-position: 0% 0; border: 0; color: var(--on-gold); font-weight: 600; letter-spacing: .02em;
+  box-shadow: 0 10px 30px -12px rgba(214, 182, 118, .55); transition: background-position 600ms var(--ease), box-shadow var(--dur) var(--ease); }
+.btn--primary:hover { color: var(--on-gold); background-position: 100% 0; box-shadow: 0 14px 36px -12px rgba(214, 182, 118, .75); }
+:root[data-theme="light"] .btn--primary { color: #FBF8F2; }
+.btn--quiet { border-color: transparent; color: var(--muted); padding: 0 var(--space-3); }
+.btn--quiet:hover { border-color: var(--line); color: var(--text); }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.arrow { font-size: .9em; }
+
+/* ================================================================= fields */
+.field { display: grid; gap: 6px; min-width: 0; }
+.field__label { font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.input, .select, .textarea {
+  width: 100%; min-height: var(--tap); padding: 0 var(--space-3);
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius);
+  transition: border-color var(--dur) var(--ease);
+}
+.input:hover, .select:hover, .textarea:hover { border-color: var(--gold); }
+.input::placeholder, .textarea::placeholder { color: var(--muted); opacity: 1; }
+.select {
+  appearance: none; padding-right: 34px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+  background-size: 5px 5px; background-repeat: no-repeat;
+}
+.select option { background: var(--surface); color: var(--text); }
+.textarea { padding: var(--space-3); min-height: 84px; resize: vertical; line-height: 1.5; }
+.check { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--tap); cursor: pointer; font-size: 14px; white-space: nowrap; }
+.check input { width: 18px; height: 18px; accent-color: var(--gold); margin: 0; }
+
+/* ================================================================== login */
+.login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); background: var(--bg); }
+.login__stage { position: relative; isolation: isolate; overflow: hidden; background: var(--glow), var(--bg); border-right: 1px solid var(--line); }
+.login__stage .lux-art { -webkit-mask-image: none; mask-image: none; }
+.login__quote { position: absolute; left: var(--space-7); bottom: var(--space-7); right: var(--space-7); margin: 0; z-index: 1;
+  font: 600 clamp(28px, 3vw, 40px)/1.15 var(--font-display); max-width: 18ch;
+  text-shadow: 0 0 2px #0A0908, 0 2px 24px rgba(10, 9, 8, .95); /* stays legible where a ring passes behind */ }
+.login__quote .login__quote-sub { display: block; margin-top: var(--space-3); font: 500 12px/1.4 var(--font-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.login__panel { display: grid; place-items: center; padding: var(--space-7) var(--space-6); background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%); }
+.login__card { width: min(380px, 100%); }
+.login__mark { font: 600 60px/1 var(--font-display); margin: 0 0 var(--space-3); letter-spacing: -.015em; }
+.login__lede { color: var(--muted); margin: 0 0 var(--space-6); }
+.login form { display: grid; gap: var(--space-4); }
+.form-error { color: var(--danger); margin: 0; min-height: 1.5em; font-size: 14px; }
+
+/* ============================================================ 3D stages */
+.lux-art { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.lux-art__static, .lux-art__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity 1.4s var(--ease); }
+.lux-art__canvas { opacity: 0; }
+.lux-art.is-3d .lux-art__canvas { opacity: 1; }
+.lux-art.is-3d .lux-art__static { opacity: 0; }
+.lux-art__static .ring { fill: none; stroke: var(--gold-deco); }
+.lux-art__static .ring--1 { stroke-width: 2.2; opacity: .9; }
+.lux-art__static .ring--2 { stroke-width: 1.2; opacity: .6; }
+.lux-art__static .ring--3 { stroke-width: .8; opacity: .4; }
+.lux-art__static .gem { fill: #0E0D0B; stroke: var(--gold-deco); stroke-width: 1; }
+.lux-art__static .facet { stroke: var(--gold-deco); stroke-width: .8; opacity: .5; }
+.lux-art__static .sat { fill: var(--gold); }
+.lux-art__static .dust { fill: var(--gold-deco); opacity: .45; }
+
+/* =================================================================== hero */
+.hero { position: relative; isolation: isolate; overflow: hidden; background: var(--glow), var(--bg); border-bottom: 1px solid var(--line); }
+.hero::after { /* fine film grain for depth; static, no blend modes (cheap on phones) */
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.hero .lux-art { left: 30%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 30%); mask-image: linear-gradient(to right, transparent 0%, #000 30%); }
+.hero__inner { position: relative; min-height: clamp(400px, 56vh, 540px); padding-top: var(--space-6); padding-bottom: var(--space-6); display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-6); }
+.hero__top { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); }
+.brand { display: flex; align-items: center; gap: var(--space-3); font: 600 13px/1 var(--font-ui); letter-spacing: .22em; text-transform: uppercase; }
+.brand__mark { width: 28px; height: 28px; }
+.brand__mark path { fill: none; stroke: var(--gold); stroke-width: 1.4; }
+.brand__mark circle { fill: var(--gold); }
+.hero__headline { align-self: center; max-width: 34rem; }
+.eyebrow { margin: 0 0 var(--space-4); font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); display: flex; align-items: center; gap: var(--space-3); }
+.eyebrow::before { content: ""; width: 36px; height: 1px; background: var(--gold-grad); }
+.wordmark { margin: 0; font: 600 clamp(56px, 8.2vw, 104px)/.9 var(--font-display); letter-spacing: -.02em; }
+.wordmark em, .gilded { font-style: normal; background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero__sub { margin: var(--space-4) 0 0; max-width: 40ch; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.hero__tools { display: flex; gap: var(--space-1); flex-shrink: 0; }
+.stats { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  max-width: 760px; box-shadow: var(--shadow-lift); }
+.stat { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-5); background: color-mix(in srgb, var(--surface) 88%, transparent); }
+.stat dt { order: 2; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); line-height: 1.35; }
+.stat dd { order: 1; margin: 0; font: 600 clamp(34px, 3.8vw, 46px)/1 var(--font-display); font-variant-numeric: lining-nums tabular-nums; }
+.stat--accent dd { background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* =================================================================== tabs */
+.tabbar { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: saturate(140%) blur(10px); -webkit-backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid var(--line); }
+.tabs { position: relative; display: flex; gap: var(--space-6); }
+.tabs__ink { position: absolute; left: 0; bottom: -1px; height: 2px; width: 1px; background: var(--gold-grad); transform-origin: left; transition: transform 420ms var(--ease); pointer-events: none; }
+.tab {
+  position: relative; display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 60px; padding: 0; background: none; border: 0; cursor: pointer;
+  font: 600 25px/1 var(--font-display); color: var(--muted);
+  transition: color var(--dur) var(--ease);
+}
+.tab:hover, .tab[aria-selected="true"] { color: var(--text); }
+.tab__count { font: 600 11px/1 var(--font-ui); color: var(--gold); font-variant-numeric: tabular-nums; min-width: 3ch; padding: 4px 7px; border: 1px solid var(--gold-soft); border-radius: 999px; background: var(--gold-soft); }
+.tab:focus-visible { outline-offset: 4px; }
+
+/* ================================================================= panels */
+main { padding-bottom: var(--space-7); min-height: 100vh; min-height: 100svh; } /* footer never sits in the first viewport → no shift when lists load */
+main:focus { outline: none; }
+.panel { padding-top: var(--space-5); }
+.panel:focus { outline: none; }
+
+.sources { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0 0 var(--space-5); padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.source { display: inline-flex; align-items: center; gap: var(--space-2); }
+.source b { color: var(--text); font-weight: 500; }
+.source[data-state="ok"] .source__state { color: var(--st-client); }
+.source[data-state="error"] .source__state { color: var(--danger); }
+.dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; display: inline-block; flex-shrink: 0; }
+.source[data-state="ok"] .dot { background: var(--st-client); border-color: var(--st-client); }
+.source[data-state="error"] .dot { background: var(--danger); border-color: var(--danger); }
+
+.filters { display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)) auto; gap: var(--space-3); align-items: end; margin-bottom: var(--space-4); }
+.filters--biz { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto auto; }
+.filters__more { display: contents; }
+.filters-toggle { display: none; }
+.filters-toggle .n { color: var(--gold); font-variant-numeric: tabular-nums; }
+.result-line { margin: 0 0 var(--space-3); font-size: 13px; color: var(--muted); min-height: 1.4em; }
+
+/* ================================================================== cards */
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.card {
+  --st: var(--st-new);
+  position: relative; background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: var(--space-5) var(--space-6) var(--space-4) calc(var(--space-6) + 2px);
+}
+.card::before { content: ""; position: absolute; left: -1px; top: 14px; bottom: 14px; width: 2px; border-radius: 2px; background: var(--st); transition: background-color 400ms var(--ease); }
+.card::after { /* champagne hairline that lights up on hover */
+  content: ""; position: absolute; left: 24px; right: 24px; top: -1px; height: 1px; background: var(--gold-grad); opacity: 0; transition: opacity 320ms var(--ease); }
+.card:hover { border-color: color-mix(in srgb, var(--gold-deco) 35%, var(--line)); box-shadow: var(--shadow-lift); }
+.card:hover::after { opacity: .9; }
+/* `translate`, not `transform`: GSAP owns transform on cards and a CSS transition on it would fight every tween */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { .card:hover { translate: 0 -1px; } }
+.card[data-status="contacted"] { --st: var(--st-contacted); }
+.card[data-status="replied"] { --st: var(--st-replied); }
+.card[data-status="client"] { --st: var(--st-client); }
+.card[data-status="rejected"] { --st: var(--st-rejected); }
+.card[data-status="rejected"] .card__body { opacity: .78; }
+.card[aria-busy="true"] { border-color: var(--gold-deco); }
+
+/* Separators: every item carries a leading dot inside the gutter; the container is
+   pulled left by one gutter and clipped back, so a dot that starts a wrapped line
+   is cut off instead of dangling. */
+.card__meta { --gut: 22px; display: flex; flex-wrap: wrap; align-items: center; row-gap: var(--space-1);
+  font-size: 13px; color: var(--muted); margin: 0 0 var(--space-2) calc(-1 * var(--gut)); clip-path: inset(0 0 0 var(--gut)); }
+.card__meta > * { position: relative; margin-left: var(--gut); }
+.card__meta > *::before { content: "·"; position: absolute; left: calc(-1 * var(--gut) / 2 - 2px); color: var(--line-strong); }
+.tag { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text); }
+.card__head { display: flex; justify-content: space-between; gap: var(--space-4); align-items: flex-start; }
+.card__head > :first-child { min-width: 0; }
+.score { position: relative; flex-shrink: 0; display: grid; place-items: center; width: 62px; height: 62px; margin: -6px -8px 0 0; }
+.score__dial { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.score__track { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.score__fill { fill: none; stroke: var(--gold-deco); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1 1; transition: stroke-dashoffset 1100ms var(--ease-expo); }
+@starting-style { .score__fill { stroke-dashoffset: 1; } }
+.score__num { font: 600 27px/1 var(--font-display); color: var(--gold); font-variant-numeric: lining-nums tabular-nums; }
+
+.lead__text { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: 15px; line-height: 1.6; max-width: 78ch; }
+.lead__text.is-clamped { display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.link-btn { background: none; border: 0; padding: var(--space-2) 0; min-height: 36px; color: var(--gold); cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 4px; }
+.link-btn:hover { text-decoration-color: currentColor; }
+.matched { margin: var(--space-2) 0 0; font-size: 12px; color: var(--muted); }
+.matched b { font-weight: 500; color: var(--text); }
+
+.biz .card__head { flex-wrap: wrap; row-gap: var(--space-2); }
+.biz .card__meta .tag { flex-basis: 100%; }
+.biz__name { margin: 0; font: 600 25px/1.15 var(--font-display); overflow-wrap: break-word; min-width: 0; }
+.biz__addr { margin: var(--space-1) 0 0; color: var(--muted); font-size: 14px; }
+.contacts { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); font-size: 14px; }
+.contacts li { overflow-wrap: anywhere; }
+.contacts .k { color: var(--muted); margin-right: 6px; }
+.flag { flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px; padding: 4px 9px; border: 1px solid var(--gold-deco); border-radius: var(--radius); color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.flag::before { content: ""; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
+
+.card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.status-field { display: inline-flex; align-items: center; gap: var(--space-2); }
+.status-field .select { width: auto; min-width: 150px; min-height: 40px; }
+/* status glyph: shape + colour; the select beside it carries the text label */
+.badge { display: inline-grid; place-items: center; width: 14px; height: 14px; flex-shrink: 0; }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--st); flex-shrink: 0; }
+.card[data-status="contacted"] .badge::before { background: transparent; border: 2px solid var(--st); }
+.card[data-status="replied"] .badge::before { border-radius: 0; }
+.card[data-status="client"] .badge::before { border-radius: 0; transform: rotate(45deg); }
+.card[data-status="rejected"] .badge::before { width: 10px; height: 2px; border-radius: 0; }
+.saved { font-size: 13px; color: var(--muted); }
+.saved.is-error { color: var(--danger); }
+.spacer { flex: 1; }
+
+.note { margin-top: var(--space-3); display: grid; gap: var(--space-2); }
+.note__row { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; }
+
+.empty { border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: var(--space-6) var(--space-5); color: var(--muted); }
+.empty h3 { margin: 0 0 var(--space-2); font: 600 26px/1.2 var(--font-display); color: var(--text); }
+.empty p { margin: 0 0 var(--space-2); max-width: 62ch; }
+.empty code { color: var(--text); background: var(--surface-2); padding: 1px 6px; border-radius: var(--radius); }
+.more { margin-top: var(--space-4); display: flex; justify-content: center; }
+.alert { border: 1px solid var(--danger); color: var(--danger); border-radius: var(--radius); padding: var(--space-3) var(--space-4); }
+
+/* ================================================================= finder */
+.finder-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: var(--space-4); }
+.finder-summary { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); min-height: 56px; padding: 0 var(--space-5); cursor: pointer; list-style: none; font: 600 21px/1.2 var(--font-display); }
+.finder-summary::-webkit-details-marker { display: none; }
+.finder-summary::after { content: "+"; font: 400 22px/1 var(--font-ui); color: var(--gold); transition: transform var(--dur) var(--ease); }
+.finder-box[open] > .finder-summary::after { transform: rotate(45deg); }
+.finder-summary:hover { color: var(--gold); }
+.finder { display: grid; gap: var(--space-4); padding: 0 var(--space-5) var(--space-5); }
+.finder__row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--space-4); align-items: end; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; margin-bottom: 6px; }
+.segmented { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+.segmented label { position: relative; display: grid; place-items: center; min-width: 56px; min-height: calc(var(--tap) - 2px); padding: 0 var(--space-3); cursor: pointer; font-variant-numeric: tabular-nums; font-size: 14px; transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
+.segmented label + label { border-left: 1px solid var(--line-strong); }
+.segmented label:hover { color: var(--gold); }
+.segmented input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.segmented label:has(input:checked) { background: var(--gold); color: var(--on-gold); font-weight: 600; }
+.segmented:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--line-strong); border-radius: var(--radius); cursor: pointer; font-size: 14px; transition: border-color var(--dur) var(--ease); }
+.chip:hover { border-color: var(--gold); }
+.chip input { width: 16px; height: 16px; accent-color: var(--gold); margin: 0; }
+.chip:has(input:checked) { border-color: var(--gold); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+.disclaimer { display: flex; gap: var(--space-3); margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 2px solid var(--gold-deco); background: var(--surface-2); border-radius: 0 var(--radius) var(--radius) 0; font-size: 14px; }
+.disclaimer p { margin: 0; max-width: 90ch; }
+.disclaimer strong { color: var(--gold); font-weight: 600; }
+.finder-status { min-height: 1.5em; margin: 0 0 var(--space-4); font-size: 14px; }
+.finder-status b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.finder-status.is-error { color: var(--danger); }
+.finder-status:empty { min-height: 0; margin: 0; } /* stays in the DOM as a live region */
+
+/* ================================================================= footer */
+.footer { border-top: 1px solid var(--line); padding: var(--space-5) 0 var(--space-7); font-size: 13px; color: var(--muted); }
+.footer p { margin: 0 0 var(--space-2); max-width: 80ch; }
+
+/* ======================================================== filter refinements */
+.filters { padding: var(--space-4); background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) + 2px); box-shadow: var(--shadow-lift); }
+.filters .input, .filters .select { background-color: var(--bg); }
+.refine { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3) var(--space-6); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.refine__group { min-width: 0; }
+
+.segmented--slide { position: relative; isolation: isolate; display: inline-grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.segmented--slide::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: -1; width: 50%; background: var(--gold); transition: transform var(--dur-slow) var(--ease-expo); }
+.segmented--slide:has(input[value="oldest"]:checked)::before { transform: translateX(100%); }
+.segmented--slide label { padding: 0 var(--space-4); white-space: nowrap; }
+.segmented--slide label + label { border-left: 0; }
+.segmented--slide label:has(input:checked) { background: transparent; color: var(--on-gold); font-weight: 600; }
+
+.toggles { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.toggle { position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--tap); padding: 0 var(--space-4) 0 var(--space-2); border: 1px solid var(--line-strong); border-radius: 999px; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
+.toggle input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.toggle__glyph { display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0; border: 1px solid var(--line-strong); border-radius: 50%; font-size: 14px; line-height: 1; color: var(--muted);
+  transition: transform var(--dur-slow) var(--ease-spring), background-color var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+.toggle:hover { border-color: var(--gold); color: var(--gold); }
+.toggle:active .toggle__glyph { transform: scale(.88); }
+.toggle:has(input:checked) { border-color: var(--gold); background: var(--gold-soft); color: var(--gold); }
+.toggle:has(input:checked) .toggle__glyph { background: var(--gold); border-color: var(--gold); color: var(--on-gold); transform: rotate(360deg); }
+.toggle:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ================================================================ card polish */
+@property --spot { syntax: "<color>"; inherits: true; initial-value: transparent; }
+.card { background: radial-gradient(560px circle at var(--mx, 50%) var(--my, 0%), var(--spot), transparent 70%), var(--card-bg);
+  transition: border-color var(--dur) var(--ease), box-shadow 320ms var(--ease), translate 320ms var(--ease), --spot 320ms var(--ease); }
+.card:hover { --spot: var(--gold-soft); }
+.card.is-hot { border-color: color-mix(in srgb, var(--gold-deco) 42%, var(--line)); }
+.card.is-hot::after { opacity: .9; }
+.card.is-hot .score__fill { stroke: var(--gold); stroke-width: 2.6; }
+.card.is-hot .score__num { background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.traits { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 var(--space-3); }
+.trait { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; border: 1px solid var(--gold-soft); border-radius: 999px; background: var(--gold-soft); color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.trait__glyph { font-size: 13px; line-height: 1; }
+.trait--fresh { border-color: color-mix(in srgb, var(--st-client) 30%, transparent); background: color-mix(in srgb, var(--st-client) 12%, transparent); color: var(--st-client); }
+.pulse-dot { position: relative; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pulse-dot::after, .source[data-state="ok"] .dot::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; background: currentColor; animation: ping 2.8s var(--ease) infinite; }
+.source[data-state="ok"] .dot { position: relative; color: var(--st-client); }
+@keyframes ping { 0% { transform: scale(1); opacity: .55; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+
+.skeleton { position: relative; overflow: hidden; height: 172px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, var(--gold-soft) 50%, transparent 80%); transform: translateX(-100%); animation: shimmer 1.5s var(--ease) infinite; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* Cards rise as they scroll in. Backwards-only fill, so GSAP keeps control once a card has entered. */
+@supports (animation-timeline: view()) {
+  @media screen and (prefers-reduced-motion: no-preference) { /* screen: printing must not catch cards mid-entry */
+    .list > .card { animation: card-rise linear backwards; animation-timeline: view(); animation-range: entry 0% entry 26%; }
+  }
+}
+@keyframes card-rise { from { opacity: 0; transform: translateY(28px) scale(.985); } }
+
+/* ================================================================ hero polish */
+.wordmark .w { display: inline-block; }
+.wordmark em { background-size: 220% 100%; animation: sheen 8s ease-in-out infinite alternate; }
+@keyframes sheen { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+.stat { position: relative; transition: background-color var(--dur) var(--ease); }
+.stat::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--gold-grad); transform: scaleX(0); transform-origin: left; transition: transform var(--dur-slow) var(--ease-expo); }
+.stat:hover { background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
+.stat:hover::after { transform: scaleX(1); }
+
+/* ============================================================= responsive */
+@media (max-width: 1023px) {
+  .filters, .filters--biz { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters .field--search { grid-column: 1 / -1; }
+  /* the 3D object moves into the top band so it never sits behind the stat panel */
+  .hero .lux-art { left: 22%; bottom: 34%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 28%); mask-image: linear-gradient(to right, transparent 0%, #000 28%); }
+  .login { grid-template-columns: 1fr; grid-template-rows: minmax(300px, 46vh) auto; }
+  .login__stage { border-right: 0; border-bottom: 1px solid var(--line); }
+  .login__quote { left: var(--space-6); right: var(--space-6); bottom: var(--space-5); }
+}
+@media (max-width: 767px) {
+  .hero__inner { min-height: 0; padding-top: var(--space-4); padding-bottom: var(--space-5); gap: var(--space-5); }
+  /* phones: the object gets its own band above the headline — text never sits on it */
+  .hero__headline { padding-top: 196px; }
+  .hero .lux-art { left: 0; top: 52px; bottom: auto; height: 214px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); }
+  .wordmark { font-size: 54px; }
+  .hero__sub { font-size: 14px; max-width: 30ch; }
+  .eyebrow { margin-bottom: var(--space-3); }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat { padding: var(--space-3) var(--space-4); }
+  .stat dd { font-size: 32px; }
+  .tabs { gap: var(--space-5); }
+  .tab { font-size: 21px; }
+  .login__panel { padding: var(--space-6) var(--space-4); }
+  .login__mark { font-size: 48px; }
+  .login__quote { font-size: 24px; left: var(--space-4); right: var(--space-4); }
+  .source__hint { display: none; }
+  .sources { margin-bottom: var(--space-4); gap: var(--space-1) var(--space-4); }
+  /* filters collapse behind a toggle so the list starts on the first screen */
+  .filters, .filters--biz { grid-template-columns: minmax(0, 1fr) auto; }
+  .filters .field--search { grid-column: auto; }
+  .filters-toggle { display: inline-flex; }
+  .filters__more { display: none; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); align-items: end; }
+  .filters.is-open .filters__more { display: grid; }
+  .filters__more .btn { grid-column: 1 / -1; }
+  .card { padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-4) + 2px); }
+  .finder { padding: 0 var(--space-4) var(--space-4); }
+  .finder-summary { padding: 0 var(--space-4); }
+  .finder__row { grid-template-columns: 1fr; }
+  .segmented { display: flex; }
+  .segmented label { flex: 1; min-width: 0; }
+  .status-field { flex: 1 1 100%; }
+  .status-field .select { flex: 1; }
+  .spacer { display: none; }
+  .card__actions .btn { flex: 1; }
+  .score { width: 54px; height: 54px; }
+  .score__num { font-size: 23px; }
+  .refine { gap: var(--space-3); }
+  .refine__group { flex: 1 1 100%; }
+  .segmented.segmented--slide { display: grid; }
+  .toggles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toggle { justify-content: flex-start; }
+  .filters { padding: var(--space-3); }
+  .biz__name { font-size: 23px; }
+}
+@media (max-width: 480px) {
+  .hero__tools .label { display: none; }
+  .hero__tools .btn--quiet { min-width: var(--tap); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  .card::before, .badge::before, .dot { forced-color-adjust: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Перейти к содержимому</a>
+
+<!-- ================================================================ login -->
+<section class="login" id="login" aria-labelledby="login-title" hidden>
+  <div class="login__stage">
+    <div class="lux-art" id="login-art" aria-hidden="true">
+      <svg class="lux-art__static" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" focusable="false"><use href="#lux-static"/></svg>
+      <canvas class="lux-art__canvas" id="login-canvas"></canvas>
+    </div>
+    <p class="login__quote">Каждый заказ — <span class="gilded">точка роста.</span><span class="login__quote-sub">Lead Hub · личный трекер</span></p>
+  </div>
+  <div class="login__panel">
+    <div class="login__card">
+      <p class="eyebrow">Закрытый доступ</p>
+      <h1 class="login__mark" id="login-title">Lead <span class="gilded">Hub</span></h1>
+      <p class="login__lede">Введите пароль из <code>LEADHUB_PASSWORD</code>.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="password">Пароль</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="form-error" id="login-error" role="alert"></p>
+        <button class="btn btn--primary" type="submit">Войти</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Shared static composition: the 3D scene's fallback (reduced motion / no WebGL) -->
+<svg width="0" height="0" class="visually-hidden" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="lux-static">
+      <circle class="dust" cx="120" cy="90" r="1.6"/><circle class="dust" cx="170" cy="320" r="1.4"/><circle class="dust" cx="560" cy="80" r="1.8"/>
+      <circle class="dust" cx="585" cy="300" r="1.4"/><circle class="dust" cx="250" cy="40" r="1.2"/><circle class="dust" cx="470" cy="360" r="1.6"/>
+      <ellipse class="ring ring--3" cx="380" cy="200" rx="245" ry="46" transform="rotate(-8 380 200)"/>
+      <ellipse class="ring ring--2" cx="380" cy="200" rx="205" ry="92" transform="rotate(26 380 200)"/>
+      <polygon class="gem" points="380,112 452,166 436,252 380,290 324,252 308,166"/>
+      <path class="facet" d="M380 112 L380 290 M308 166 L452 166 M324 252 L436 252 M380 112 L324 252 M380 112 L436 252 M308 166 L380 290 M452 166 L380 290"/>
+      <ellipse class="ring ring--1" cx="380" cy="200" rx="168" ry="58" transform="rotate(-18 380 200)"/>
+      <circle class="sat" cx="533" cy="150" r="5"/><circle class="sat" cx="232" cy="252" r="4"/><circle class="sat" cx="566" cy="262" r="3"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ================================================================== app -->
+<div id="app" hidden>
+  <header class="hero">
+    <div class="lux-art" id="hero-art" aria-hidden="true">
+      <svg class="lux-art__static" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" focusable="false"><use href="#lux-static"/></svg>
+      <canvas class="lux-art__canvas" id="hero-canvas"></canvas>
+    </div>
+    <div class="wrap hero__inner">
+      <div class="hero__top">
+        <div class="brand">
+          <svg class="brand__mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M14 2 24 9 21 22 14 26 7 22 4 9Z"/><path d="M4 9h20M14 2v24"/><circle cx="24" cy="9" r="2"/></svg>
+          <span>Lead Hub</span>
+        </div>
+        <div class="hero__tools">
+          <button class="btn btn--quiet" type="button" id="theme-toggle"><span aria-hidden="true">◐</span> <span class="label" id="theme-label">Тема</span></button>
+          <button class="btn btn--quiet" type="button" id="logout" aria-label="Выйти из Lead Hub"><span aria-hidden="true">⏻</span> <span class="label">Выйти</span></button>
+        </div>
+      </div>
+      <div class="hero__headline">
+        <p class="eyebrow">Личный трекер заказов</p>
+        <h1 class="wordmark"><span class="w">Lead</span> <em class="w">Hub</em></h1>
+        <p class="hero__sub">Заказы из Telegram, Reddit и RSS-лент и местные бизнесы без сайта — в одном спокойном месте.</p>
+      </div>
+      <dl class="stats" id="stats" aria-label="Сводка из базы">
+        <div class="stat stat--accent"><dt>Новые заказы</dt><dd data-stat="new_leads">—</dd></div>
+        <div class="stat"><dt>Заказы в работе</dt><dd data-stat="in_progress">—</dd></div>
+        <div class="stat"><dt>Клиенты</dt><dd data-stat="clients">—</dd></div>
+        <div class="stat"><dt>Бизнесы без сайта</dt><dd data-stat="opportunities">—</dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <nav class="tabbar" aria-label="Разделы">
+    <div class="wrap">
+      <div class="tabs" role="tablist" aria-label="Разделы">
+        <button class="tab" role="tab" id="tab-leads" aria-controls="panel-leads" aria-selected="true" type="button">Заказы <span class="tab__count" id="count-leads"></span></button>
+        <button class="tab" role="tab" id="tab-biz" aria-controls="panel-biz" aria-selected="false" tabindex="-1" type="button">Бизнесы рядом <span class="tab__count" id="count-biz"></span></button>
+        <span class="tabs__ink" id="tabs-ink" aria-hidden="true"></span>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <!-- ------------------------------------------------------------ leads -->
+    <section class="panel" id="panel-leads" role="tabpanel" aria-labelledby="tab-leads">
+      <h2 class="visually-hidden">Заказы из чатов, сабреддитов и лент</h2>
+      <ul class="sources" id="sources" aria-label="Состояние источников"></ul>
+      <form class="filters" id="lead-filters" role="search" aria-label="Фильтры заказов">
+        <div class="field field--search">
+          <label class="field__label" for="lead-q">Поиск</label>
+          <input class="input" id="lead-q" name="q" type="search" placeholder="Текст, заметка, чат…" autocomplete="off" maxlength="200">
+        </div>
+        <button class="btn filters-toggle" type="button" aria-expanded="false" aria-controls="lead-more-filters">Фильтры<span class="n"></span></button>
+        <div class="filters__more" id="lead-more-filters">
+        <div class="field">
+          <label class="field__label" for="lead-status">Статус</label>
+          <select class="select" id="lead-status" name="status"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="lead-min">Мин. балл</label>
+          <select class="select" id="lead-min" name="min_score">
+            <option value="0">Любой</option><option value="5">5+</option><option value="7">7+</option><option value="9">9+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="lead-source">Источник</label>
+          <select class="select" id="lead-source" name="source">
+            <option value="">Все</option><option value="telegram">Telegram</option><option value="reddit">Reddit</option><option value="rss">RSS</option>
+          </select>
+        </div>
+        <a class="btn" id="lead-export" href="/api/leads/export.csv" download>Экспорт CSV</a>
+        </div>
+        <div class="refine">
+          <fieldset class="refine__group">
+            <legend class="field__label">Порядок</legend>
+            <div class="segmented segmented--slide">
+              <label><input type="radio" name="sort" value="newest" checked>Сначала новые</label>
+              <label><input type="radio" name="sort" value="oldest">Сначала старые</label>
+            </div>
+          </fieldset>
+          <fieldset class="refine__group">
+            <legend class="field__label">Условия заказа</legend>
+            <div class="toggles">
+              <label class="toggle"><input type="checkbox" name="fixed_pay"><span class="toggle__glyph" aria-hidden="true">¤</span>Фикс. оплата</label>
+              <label class="toggle"><input type="checkbox" name="long_term"><span class="toggle__glyph" aria-hidden="true">∞</span>Долгосрочно</label>
+            </div>
+          </fieldset>
+        </div>
+      </form>
+      <p class="result-line" id="lead-result" aria-live="polite"></p>
+      <ol class="list" id="lead-list" aria-label="Заказы"></ol>
+      <div class="more"><button class="btn" type="button" id="lead-more" hidden>Показать ещё</button></div>
+    </section>
+
+    <!-- -------------------------------------------------------- businesses -->
+    <section class="panel" id="panel-biz" role="tabpanel" aria-labelledby="tab-biz" hidden>
+      <h2 class="visually-hidden">Поиск местных бизнесов</h2>
+      <details class="finder-box" id="finder-box" open>
+      <summary class="finder-summary">Новый поиск в OpenStreetMap</summary>
+      <form class="finder" id="finder" aria-label="Поиск бизнесов в OpenStreetMap" novalidate>
+        <div class="finder__row">
+          <div class="field">
+            <label class="field__label" for="city">Город</label>
+            <input class="input" id="city" name="city" required minlength="2" maxlength="120" autocomplete="address-level2" placeholder="Например, Казань">
+          </div>
+          <fieldset>
+            <legend class="field__label">Радиус, км</legend>
+            <div class="segmented" id="radius"></div>
+          </fieldset>
+          <button class="btn btn--primary" type="submit" id="finder-submit">Найти бизнесы</button>
+        </div>
+        <fieldset>
+          <legend class="field__label">Категории</legend>
+          <div class="chips" id="categories"></div>
+        </fieldset>
+      </form>
+      </details>
+      <aside class="disclaimer" aria-label="О данных OpenStreetMap">
+        <p><strong>Данные OSM неполные.</strong> Их вносят добровольцы: «нет сайта» может означать лишь, что его никто не указал на карте. Прежде чем писать бизнесу, проверьте вручную — поиск, карты, соцсети.</p>
+      </aside>
+      <p class="finder-status" id="finder-status" role="status"></p>
+
+      <form class="filters filters--biz" id="biz-filters" role="search" aria-label="Фильтры бизнесов">
+        <div class="field field--search">
+          <label class="field__label" for="biz-q">Поиск</label>
+          <input class="input" id="biz-q" name="q" type="search" placeholder="Название, адрес, заметка…" autocomplete="off" maxlength="200">
+        </div>
+        <button class="btn filters-toggle" type="button" aria-expanded="false" aria-controls="biz-more-filters">Фильтры<span class="n"></span></button>
+        <div class="filters__more" id="biz-more-filters">
+        <div class="field">
+          <label class="field__label" for="biz-status">Статус</label>
+          <select class="select" id="biz-status" name="status"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="biz-city">Город</label>
+          <select class="select" id="biz-city" name="city"><option value="">Все</option></select>
+        </div>
+        <label class="check"><input type="checkbox" id="biz-opp" name="opportunity_only"> Только без сайта</label>
+        <a class="btn" id="biz-export" href="/api/businesses/export.csv" download>Экспорт CSV</a>
+        </div>
+      </form>
+      <p class="result-line" id="biz-result" aria-live="polite"></p>
+      <ol class="list" id="biz-list" aria-label="Бизнесы"></ol>
+      <div class="more"><button class="btn" type="button" id="biz-more" hidden>Показать ещё</button></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>Мониторинг только для чтения: Lead Hub ничего не публикует и не отвечает в чатах, сабреддитах и лентах. Уведомления приходят только вам.</p>
+      <p>Данные карт © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">участники OpenStreetMap</a>, лицензия ODbL.</p>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================================================ templates -->
+<template id="tpl-lead">
+  <li class="card lead">
+    <div class="card__body">
+      <div class="card__head">
+        <div>
+          <div class="card__meta"><span class="tag" data-f="source"></span><span data-f="source_name"></span><time data-f="time"></time><span data-f="author"></span></div>
+          <div class="traits" data-f="traits"></div>
+        </div>
+        <div class="score">
+          <svg class="score__dial" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle class="score__track" cx="18" cy="18" r="16"/><circle class="score__fill" data-f="dial" cx="18" cy="18" r="16" pathLength="1"/></svg>
+          <span class="score__num" data-f="score"></span><span class="visually-hidden" data-f="score_of"></span>
+        </div>
+      </div>
+      <p class="lead__text" data-f="text"></p>
+      <button class="link-btn" type="button" data-act="expand" aria-expanded="false" hidden>Показать полностью</button>
+      <p class="matched" data-f="matched"></p>
+    </div>
+    <div class="card__actions">
+      <span class="status-field"><span class="badge" data-f="badge" aria-hidden="true"></span><label class="visually-hidden" data-f="status_label">Статус</label><select class="select" data-act="status"></select></span>
+      <span class="saved" data-f="saved" role="status"></span>
+      <span class="spacer"></span>
+      <button class="btn btn--quiet" type="button" data-act="note-toggle" aria-expanded="false">Заметка</button>
+      <a class="btn" data-f="link" target="_blank" rel="noopener noreferrer">Открыть <span class="arrow" aria-hidden="true">↗</span><span class="visually-hidden"> (в новой вкладке)</span></a>
+    </div>
+    <div class="note" data-f="note_box" hidden>
+      <label class="field__label" data-f="note_label">Заметка</label>
+      <textarea class="textarea" data-f="note" maxlength="4000"></textarea>
+      <div class="note__row"><button class="btn" type="button" data-act="note-save">Сохранить заметку</button><span class="saved" data-f="note_saved" role="status"></span></div>
+    </div>
+  </li>
+</template>
+
+<template id="tpl-biz">
+  <li class="card biz">
+    <div class="card__body">
+      <div class="card__meta"><span class="tag" data-f="category"></span><span data-f="distance"></span><span data-f="city"></span></div>
+      <div class="card__head">
+        <h3 class="biz__name" data-f="name"></h3>
+        <span class="flag" data-f="flag" hidden>Нет сайта и мессенджера</span>
+      </div>
+      <p class="biz__addr" data-f="address"></p>
+      <ul class="contacts" data-f="contacts"></ul>
+    </div>
+    <div class="card__actions">
+      <span class="status-field"><span class="badge" data-f="badge" aria-hidden="true"></span><label class="visually-hidden" data-f="status_label">Статус</label><select class="select" data-act="status"></select></span>
+      <span class="saved" data-f="saved" role="status"></span>
+      <span class="spacer"></span>
+      <button class="btn btn--quiet" type="button" data-act="note-toggle" aria-expanded="false">Заметка</button>
+      <a class="btn" data-f="osm" target="_blank" rel="noopener noreferrer">На карте <span class="arrow" aria-hidden="true">↗</span><span class="visually-hidden"> (OpenStreetMap, новая вкладка)</span></a>
+    </div>
+    <div class="note" data-f="note_box" hidden>
+      <label class="field__label" data-f="note_label">Заметка</label>
+      <textarea class="textarea" data-f="note" maxlength="4000"></textarea>
+      <div class="note__row"><button class="btn" type="button" data-act="note-save">Сохранить заметку</button><span class="saved" data-f="note_saved" role="status"></span></div>
+    </div>
+  </li>
+</template>
+
+<!-- async: GSAP must never hold back the app script; motion simply starts once it has arrived -->
+<script src="/static/vendor/gsap-3.13.0.min.js" nonce="__CSP_NONCE__" async></script>
+<script type="module" nonce="__CSP_NONCE__">
+/* ============================================================ constants */
+const STATUS = { new: "Новый", contacted: "Написал", replied: "Ответили", client: "Клиент", rejected: "Отказ" };
+const SOURCE = { telegram: "Telegram", reddit: "Reddit", rss: "RSS" };
+const PAGE = 50;
+const CLAMP_CHARS = 360;
+const SEARCH_DEBOUNCE_MS = 260;
+const FRESH_MS = 48 * 3600 * 1000;
+const HOT_SCORE_RATIO = 1; // only top-scoring leads stand out; a highlight on half the list highlights nothing
+const SKELETON_CARDS = 4;
+const reduceMotionMq = matchMedia("(prefers-reduced-motion: reduce)");
+const $ = (sel, root = document) => root.querySelector(sel);
+const field = (node, name) => node.querySelector(`[data-f="${name}"]`);
+
+const state = {
+  maxScore: 12,
+  categories: new Map(),
+  leads: { total: 0, offset: 0, filters: { q: "", status: "", min_score: "0", source: "", sort: "newest", fixed_pay: false, long_term: false } },
+  biz: { total: 0, offset: 0, loaded: false, filters: { q: "", status: "", city: "", opportunity_only: false } },
+  shown: { new_leads: 0, in_progress: 0, clients: 0, opportunities: 0 },
+};
+
+/* What the hero's 3D scene should show; the render loop reads this every frame. */
+let heroVisual = { mode: "leads", fixed: false, long: false, sortDir: 1 };
+const setHeroVisual = (patch) => { heroVisual = { ...heroVisual, ...patch }; };
+
+/* ================================================================== api */
+class AuthError extends Error {}
+
+function detailText(detail) {
+  if (!detail) return "";
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) return detail.map((d) => d.msg || "").filter(Boolean).join("; ");
+  return "";
+}
+
+async function api(path, { method = "GET", body } = {}) {
+  const headers = { "X-LeadHub": "1" };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  let res;
+  try {
+    res = await fetch(path, { method, headers, credentials: "same-origin", body: body === undefined ? undefined : JSON.stringify(body) });
+  } catch {
+    throw new Error("Сервер недоступен. Проверьте, что Lead Hub запущен.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== "/api/login") { showLogin(); throw new AuthError("auth"); }
+  if (!res.ok) throw new Error(detailText(data.detail) || `Ошибка ${res.status}`);
+  return data;
+}
+
+/* ============================================================== helpers */
+const motionOk = () => !reduceMotionMq.matches && typeof window.gsap !== "undefined";
+const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
+const nf = new Intl.NumberFormat("ru-RU");
+
+function timeAgo(iso) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  const sec = (t - Date.now()) / 1000, abs = Math.abs(sec);
+  if (abs < 60) return "только что";
+  if (abs < 3600) return rtf.format(Math.round(sec / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(sec / 3600), "hour");
+  if (abs < 86400 * 30) return rtf.format(Math.round(sec / 86400), "day");
+  return new Date(t).toLocaleDateString("ru-RU");
+}
+const distance = (m) => (m < 1000 ? `${m} м` : `${(m / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`);
+const isHttp = (url) => /^https?:\/\//i.test(url || "");
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const plural = (n, one, few, many) => {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+};
+const storage = {
+  get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode: ignore */ } },
+};
+
+function fillStatusOptions(select, withAll) {
+  const options = withAll ? [["", "Все"], ...Object.entries(STATUS)] : Object.entries(STATUS);
+  select.replaceChildren(...options.map(([value, label]) => new Option(label, value)));
+}
+
+/* ============================================================== motion */
+const REVEAL_LIMIT = 14; // animate what is on screen; the rest appear instantly
+const FLIP_LIMIT = 24;
+
+/* New cards tip in like pages; `direction` is -1 when the list runs oldest-first. */
+function revealItems(nodes, direction = 1) {
+  if (!motionOk() || !nodes.length) return;
+  window.gsap.from(nodes.slice(0, REVEAL_LIMIT), {
+    opacity: 0, y: 24 * direction, rotationX: -7 * direction, transformPerspective: 1000, transformOrigin: "50% 0%",
+    duration: 0.68, ease: "expo.out", stagger: 0.045, clearProps: "opacity,transform",
+  });
+}
+
+function cardTops(list) {
+  if (!motionOk()) return new Map();
+  return new Map([...list.querySelectorAll(":scope > .card")].map((c) => [c.dataset.id, c.getBoundingClientRect().top]));
+}
+
+/* FLIP: cards that survive a filter change glide to their new place; the others tip in. */
+function animateListChange(nodes, previousTops, direction) {
+  if (!motionOk() || !nodes.length) return;
+  const kept = nodes.filter((n) => previousTops.has(n.dataset.id));
+  const offsets = kept.map((node) => {
+    const top = node.getBoundingClientRect().top;
+    return { node, delta: previousTops.get(node.dataset.id) - top, top };
+  });
+  offsets
+    .filter(({ delta, top }) => Math.abs(delta) > 1 && Math.min(top, top + delta) < innerHeight)
+    .slice(0, FLIP_LIMIT)
+    .forEach(({ node, delta }) => {
+      window.gsap.fromTo(node, { y: delta }, { y: 0, duration: 0.62, ease: "expo.out", clearProps: "transform" });
+    });
+  revealItems(nodes.filter((n) => !previousTops.has(n.dataset.id)), direction);
+}
+
+function animatePanel(panel, direction) {
+  if (!motionOk()) return;
+  window.gsap.fromTo(panel, { opacity: 0, x: 36 * direction }, { opacity: 1, x: 0, duration: 0.55, ease: "expo.out", clearProps: "opacity,transform" });
+}
+
+function playHeroIntro() {
+  if (!motionOk()) return;
+  const clearProps = "opacity,transform";
+  window.gsap.timeline({ defaults: { ease: "expo.out", duration: 0.9 } })
+    .from(".hero__top", { opacity: 0, y: -12, duration: 0.6, clearProps })
+    .from(".hero .eyebrow", { opacity: 0, x: -18, clearProps }, "-=.4")
+    .from(".wordmark .w", { opacity: 0, yPercent: 55, rotationX: -55, transformPerspective: 600, transformOrigin: "50% 100%", stagger: 0.1, duration: 1.1, clearProps }, "-=.65")
+    .from(".hero__sub", { opacity: 0, y: 14, clearProps }, "-=.75")
+    .from(".stat", { opacity: 0, y: 22, stagger: 0.07, clearProps }, "-=.75")
+    .from(".tabbar", { opacity: 0, duration: 0.6, clearProps: "opacity" }, "-=.7");
+}
+
+async function leaveLogin() {
+  const login = $("#login");
+  if (login.hidden || !motionOk()) return;
+  await window.gsap.to(login, { opacity: 0, scale: 1.015, duration: 0.42, ease: "power2.in" });
+  window.gsap.set(login, { clearProps: "opacity,transform" });
+}
+
+function shake(el) {
+  if (motionOk()) window.gsap.fromTo(el, { x: -8 }, { x: 0, duration: 0.5, ease: "elastic.out(1.1,.3)", clearProps: "transform" });
+}
+
+function countTo(el, to) {
+  const key = el.dataset.stat;
+  const from = state.shown[key] ?? 0;
+  state.shown = { ...state.shown, [key]: to };
+  if (!motionOk() || (from === to && el.textContent !== "—")) { el.textContent = nf.format(to); return; }
+  const counter = { v: from };
+  window.gsap.to(counter, { v: to, duration: 1.1, ease: "power2.out", onUpdate: () => { el.textContent = nf.format(Math.round(counter.v)); } });
+}
+
+function confirmStatus(card, message, isError = false) {
+  const saved = field(card, "saved");
+  const badge = field(card, "badge");
+  saved.textContent = message;
+  saved.classList.toggle("is-error", isError);
+  if (!motionOk()) { setTimeout(() => { saved.textContent = ""; }, 2600); return; }
+  window.gsap.killTweensOf(saved);
+  if (!isError) window.gsap.fromTo(badge, { opacity: 0.2, x: -4 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out", clearProps: "opacity,transform" });
+  window.gsap.fromTo(saved, { opacity: 0 }, { opacity: 1, duration: 0.25 });
+  window.gsap.to(saved, { opacity: 0, delay: 2.2, duration: 0.4, onComplete: () => { saved.textContent = ""; window.gsap.set(saved, { clearProps: "opacity" }); } });
+}
+
+/* ================================================================ login */
+function showLogin() {
+  $("#app").hidden = true;
+  $("#login").hidden = false;
+  $("#password").focus();
+  scheduleLux("login-art", "login-canvas", { scale: 1.05 });
+  if (motionOk()) window.gsap.from(".login__card > *", { opacity: 0, y: 18, duration: 0.8, ease: "expo.out", stagger: 0.08, clearProps: "opacity,transform" });
+}
+
+$("#login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const error = $("#login-error");
+  error.textContent = "";
+  try {
+    await api("/api/login", { method: "POST", body: { password: $("#password").value } });
+    $("#password").value = "";
+    await showApp();
+    $("#main").focus({ preventScroll: true }); // the focused password field is now hidden
+  } catch (err) {
+    error.textContent = err.message;
+    $("#password").select();
+    shake($(".login__card"));
+  }
+});
+
+$("#logout").addEventListener("click", async () => {
+  await api("/api/logout", { method: "POST" }).catch(() => {});
+  location.reload();
+});
+
+/* ================================================================ theme */
+/* Dark ("onyx") is the house style; light is an explicit opt-in that is remembered. */
+function applyTheme(theme) {
+  const effective = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = effective;
+  $("#theme-label").textContent = effective === "light" ? "Светлая" : "Тёмная";
+  $("#theme-toggle").setAttribute("aria-label", `Тема: ${effective === "light" ? "светлая" : "тёмная"}. Переключить`);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", effective === "light" ? "#F4EEE2" : "#0A0908");
+  document.dispatchEvent(new CustomEvent("leadhub:theme"));
+}
+$("#theme-toggle").addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  storage.set("leadhub-theme", next);
+  if (document.startViewTransition && !reduceMotionMq.matches) document.startViewTransition(() => applyTheme(next));
+  else applyTheme(next);
+});
+applyTheme(storage.get("leadhub-theme"));
+
+/* ================================================================= tabs */
+const tabs = [$("#tab-leads"), $("#tab-biz")];
+/* Gold ink slides to the active tab (transform-only: translateX + scaleX of a 1px bar). */
+function moveTabInk() {
+  const active = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+  if (!active || !active.offsetWidth) return;
+  $("#tabs-ink").style.transform = `translateX(${active.offsetLeft}px) scaleX(${active.offsetWidth})`;
+}
+new ResizeObserver(moveTabInk).observe($(".tabs"));
+document.fonts?.ready.then(moveTabInk);
+function selectTab(tab, focus = true) {
+  const previous = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+  for (const t of tabs) {
+    const active = t === tab;
+    t.setAttribute("aria-selected", String(active));
+    t.tabIndex = active ? 0 : -1;
+    $(`#${t.getAttribute("aria-controls")}`).hidden = !active;
+  }
+  if (focus) tab.focus();
+  moveTabInk();
+  const isBiz = tab.id === "tab-biz";
+  if (previous !== tab) animatePanel($(`#${tab.getAttribute("aria-controls")}`), tabs.indexOf(tab) > tabs.indexOf(previous) ? 1 : -1);
+  setHeroVisual({ mode: isBiz ? "biz" : "leads" });
+  history.replaceState(null, "", isBiz ? "#biz" : "#leads");
+  if (isBiz && !state.biz.loaded && !state.biz.loading) {
+    state.biz = { ...state.biz, loading: true };
+    loadBusinesses(true).finally(() => { state.biz = { ...state.biz, loading: false }; });
+  }
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => selectTab(tab));
+  tab.addEventListener("keydown", (e) => {
+    const map = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
+    if (!(e.key in map)) return;
+    e.preventDefault();
+    selectTab(tabs[(map[e.key] + tabs.length) % tabs.length]);
+  });
+});
+
+/* ======================================================== stats/sources */
+async function refreshStats() {
+  const s = await api("/api/stats");
+  const values = {
+    new_leads: s.leads.new,
+    in_progress: s.leads.contacted + s.leads.replied,
+    clients: s.leads.client + s.businesses.client,
+    opportunities: s.businesses.opportunities,
+  };
+  for (const el of document.querySelectorAll("[data-stat]")) countTo(el, values[el.dataset.stat]);
+  $("#count-leads").textContent = nf.format(s.leads.total);
+  $("#count-biz").textContent = nf.format(s.businesses.total);
+}
+
+function sourceState(info, extra) {
+  const st = info.state;
+  const hint = extra ? `· ${extra}` : "";
+  if (!info.configured && !st) return ["off", "не настроен", `· ${extra}`];
+  if (st && st.last_error && !st.last_ok_at) return ["error", `ошибка: ${st.last_error}`, hint];
+  if (st && st.last_run_at) {
+    const partial = st.last_error ? ` · частично: ${st.last_error}` : "";
+    return [st.last_error ? "error" : "ok", `проверено ${timeAgo(st.last_run_at)}${partial}`, hint];
+  }
+  return ["off", "настроен, монитор ещё не запускался", hint];
+}
+
+function renderSources(src) {
+  state.maxScore = src.max_score;
+  const items = [
+    ["Telegram", src.telegram, src.telegram.configured ? "" : "TG_API_ID / TG_API_HASH"],
+    ["Reddit", src.reddit, src.reddit.configured ? src.reddit.subreddits.map((s) => `r/${s}`).join(", ") : "REDDIT_CLIENT_ID / SECRET"],
+    ["RSS", src.rss, src.rss.configured ? `${src.rss.feeds} ${plural(src.rss.feeds, "лента", "ленты", "лент")}` : "RSS_FEEDS"],
+  ];
+  const nodes = items.map(([name, info, extra]) => {
+    const [kind, text, hint] = sourceState(info, extra);
+    const li = document.createElement("li");
+    li.className = "source";
+    li.dataset.state = kind;
+    const dot = document.createElement("span"); dot.className = "dot"; dot.setAttribute("aria-hidden", "true");
+    const b = document.createElement("b"); b.textContent = name;
+    const s = document.createElement("span"); s.className = "source__state"; s.textContent = text;
+    li.append(dot, b, s);
+    if (hint) { const h = document.createElement("span"); h.className = "source__hint"; h.textContent = hint; li.append(h); }
+    return li;
+  });
+  const notify = document.createElement("li");
+  notify.className = "source";
+  notify.dataset.state = src.notifications.configured ? "ok" : "off";
+  const dot = document.createElement("span"); dot.className = "dot"; dot.setAttribute("aria-hidden", "true");
+  notify.append(dot, src.notifications.configured
+    ? `Уведомления в Telegram: от ${src.notifications.min_score} баллов`
+    : "Уведомления в Telegram выключены");
+  $("#sources").replaceChildren(...nodes, notify);
+}
+
+/* ================================================================ cards */
+function setStatus(card, status) {
+  card.dataset.status = status; // drives stripe colour + glyph shape; the select shows the label
+}
+
+function wireCommon(node, item, kind) {
+  node.dataset.id = item.id;
+  node.dataset.kind = kind;
+  setStatus(node, item.status);
+  const select = node.querySelector('[data-act="status"]');
+  select.id = `${kind}-status-${item.id}`;
+  field(node, "status_label").htmlFor = select.id;
+  fillStatusOptions(select, false);
+  select.value = item.status;
+  const note = field(node, "note");
+  note.id = `${kind}-note-${item.id}`;
+  note.value = item.note || "";
+  field(node, "note_label").htmlFor = note.id;
+  const box = field(node, "note_box");
+  box.id = `${kind}-notebox-${item.id}`;
+  const toggle = node.querySelector('[data-act="note-toggle"]');
+  toggle.setAttribute("aria-controls", box.id);
+  if (item.note) { box.hidden = false; toggle.setAttribute("aria-expanded", "true"); toggle.textContent = "Скрыть заметку"; }
+}
+
+function traitBadge(kind, glyph, label) {
+  const badge = document.createElement("span");
+  badge.className = `trait trait--${kind}`;
+  const mark = document.createElement("span");
+  mark.setAttribute("aria-hidden", "true");
+  if (glyph) { mark.className = "trait__glyph"; mark.textContent = glyph; } else mark.className = "pulse-dot";
+  badge.append(mark, label);
+  return badge;
+}
+
+function leadTraits(lead) {
+  const isFresh = Date.now() - Date.parse(lead.posted_at) < FRESH_MS;
+  return [
+    ...(isFresh ? [traitBadge("fresh", "", "Свежий")] : []),
+    ...(lead.fixed_pay ? [traitBadge("fixed", "¤", "Фикс. оплата")] : []),
+    ...(lead.long_term ? [traitBadge("long", "∞", "Долгосрочно")] : []),
+  ];
+}
+
+function renderLead(lead) {
+  const node = $("#tpl-lead").content.firstElementChild.cloneNode(true);
+  const scoreRatio = Math.min(lead.score / state.maxScore, 1);
+  node.classList.toggle("is-hot", scoreRatio >= HOT_SCORE_RATIO);
+  field(node, "dial").style.strokeDashoffset = String(1 - scoreRatio);
+  const traits = leadTraits(lead);
+  if (traits.length) field(node, "traits").replaceChildren(...traits); else field(node, "traits").remove();
+  field(node, "source").textContent = SOURCE[lead.source] || lead.source;
+  field(node, "source_name").textContent = lead.source_name;
+  const time = field(node, "time");
+  time.dateTime = lead.posted_at;
+  time.textContent = timeAgo(lead.posted_at);
+  time.title = new Date(lead.posted_at).toLocaleString("ru-RU");
+  if (lead.author) field(node, "author").textContent = lead.author; else field(node, "author").remove();
+  field(node, "score").textContent = lead.score;
+  field(node, "score_of").textContent = `из ${state.maxScore}`;
+  const text = field(node, "text");
+  text.textContent = lead.text;
+  if (lead.text.length > CLAMP_CHARS || lead.text.split("\n").length > 6) {
+    text.classList.add("is-clamped");
+    text.id = `lead-text-${lead.id}`;
+    const expand = node.querySelector('[data-act="expand"]');
+    expand.hidden = false;
+    expand.setAttribute("aria-controls", text.id);
+  }
+  const matched = field(node, "matched");
+  if (lead.matched?.length) {
+    const b = document.createElement("b");
+    b.textContent = lead.matched.join(", ");
+    matched.append("Совпало: ", b);
+  } else matched.remove();
+  const link = field(node, "link");
+  if (isHttp(lead.link)) link.href = lead.link; else link.remove();
+  wireCommon(node, lead, "leads");
+  return node;
+}
+
+function contactItem(label, value, href) {
+  const li = document.createElement("li");
+  const k = document.createElement("span"); k.className = "k"; k.textContent = label;
+  li.append(k);
+  if (href) {
+    const a = document.createElement("a");
+    a.href = href; a.textContent = value;
+    if (isHttp(href)) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+    li.append(a);
+  } else li.append(value);
+  return li;
+}
+
+function renderBusiness(biz) {
+  const node = $("#tpl-biz").content.firstElementChild.cloneNode(true);
+  field(node, "category").textContent = state.categories.get(biz.category) || biz.category;
+  field(node, "distance").textContent = `${distance(biz.distance_m)} от центра`;
+  field(node, "city").textContent = biz.city;
+  field(node, "name").textContent = biz.name;
+  field(node, "flag").hidden = !biz.opportunity;
+  const addr = field(node, "address");
+  if (biz.address) addr.textContent = biz.address; else addr.remove();
+  const contacts = [];
+  if (biz.phone) {
+    const tel = biz.phone.split(/[;,]/)[0].replace(/[^\d+]/g, "");
+    contacts.push(contactItem("Тел.", biz.phone, tel.length >= 5 ? `tel:${tel}` : ""));
+  }
+  if (biz.website) contacts.push(contactItem("Сайт", biz.website.replace(/^https?:\/\//i, "").replace(/\/$/, ""), isHttp(biz.website) ? biz.website : ""));
+  if (biz.messenger) contacts.push(contactItem("Мессенджер", biz.messenger));
+  if (biz.social) contacts.push(contactItem("Соцсеть", biz.social));
+  if (!contacts.length) contacts.push(contactItem("Контакты", "в OSM не указаны"));
+  field(node, "contacts").replaceChildren(...contacts);
+  field(node, "osm").href = `https://www.openstreetmap.org/${encodeURIComponent(biz.osm_type)}/${encodeURIComponent(biz.osm_id)}`;
+  wireCommon(node, biz, "businesses");
+  return node;
+}
+
+/* ============================================================ list events */
+/* A soft gold light follows the pointer across the hovered card (one rAF per frame at most). */
+function wireCardSpotlight(list) {
+  if (!matchMedia("(hover: hover) and (pointer: fine)").matches || reduceMotionMq.matches) return;
+  let pending = 0, latest = null;
+  list.addEventListener("pointermove", (e) => {
+    latest = e;
+    if (pending) return;
+    pending = requestAnimationFrame(() => {
+      pending = 0;
+      const card = latest.target.closest?.(".card");
+      if (!card) return;
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${latest.clientX - rect.left}px`);
+      card.style.setProperty("--my", `${latest.clientY - rect.top}px`);
+    });
+  }, { passive: true });
+}
+
+function wireList(list) {
+  wireCardSpotlight(list);
+  list.addEventListener("change", async (e) => {
+    const select = e.target.closest('[data-act="status"]');
+    if (!select) return;
+    const card = select.closest(".card");
+    const previous = card.dataset.status;
+    card.setAttribute("aria-busy", "true");
+    try {
+      const updated = await api(`/api/${card.dataset.kind}/${card.dataset.id}`, { method: "PATCH", body: { status: select.value } });
+      setStatus(card, updated.status);
+      confirmStatus(card, "Сохранено");
+      refreshStats().catch(() => {});
+    } catch (err) {
+      if (err instanceof AuthError) return;
+      select.value = previous;
+      confirmStatus(card, `Не сохранено: ${err.message}`, true);
+    } finally {
+      card.removeAttribute("aria-busy");
+    }
+  });
+
+  list.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-act]");
+    if (!btn || btn.tagName === "SELECT") return;
+    const card = btn.closest(".card");
+    if (btn.dataset.act === "expand") {
+      const expanded = !field(card, "text").classList.toggle("is-clamped");
+      btn.setAttribute("aria-expanded", String(expanded));
+      btn.textContent = expanded ? "Свернуть" : "Показать полностью";
+    } else if (btn.dataset.act === "note-toggle") {
+      const box = field(card, "note_box");
+      box.hidden = !box.hidden;
+      btn.setAttribute("aria-expanded", String(!box.hidden));
+      btn.textContent = box.hidden ? "Заметка" : "Скрыть заметку";
+      if (!box.hidden) {
+        field(card, "note").focus();
+        if (motionOk()) window.gsap.from(box, { opacity: 0, y: -8, duration: 0.36, ease: "expo.out", clearProps: "opacity,transform" });
+      }
+    } else if (btn.dataset.act === "note-save") {
+      await saveNote(card);
+    }
+  });
+
+  list.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && e.target.matches("textarea")) {
+      e.preventDefault();
+      saveNote(e.target.closest(".card"));
+    }
+  });
+}
+
+async function saveNote(card) {
+  const out = field(card, "note_saved");
+  try {
+    await api(`/api/${card.dataset.kind}/${card.dataset.id}`, { method: "PATCH", body: { note: field(card, "note").value } });
+    out.classList.remove("is-error");
+    out.textContent = "Заметка сохранена";
+    setTimeout(() => { out.textContent = ""; }, 2400);
+  } catch (err) {
+    if (err instanceof AuthError) return;
+    out.classList.add("is-error");
+    out.textContent = `Не сохранено: ${err.message}`;
+  }
+}
+
+function emptyState(title, lines) {
+  const li = document.createElement("li");
+  li.className = "empty";
+  const h = document.createElement("h3"); h.textContent = title;
+  li.append(h);
+  for (const line of lines) {
+    const p = document.createElement("p");
+    for (const part of line) {
+      if (typeof part === "string") p.append(part);
+      else { const c = document.createElement("code"); c.textContent = part.code; p.append(c); }
+    }
+    li.append(p);
+  }
+  return li;
+}
+
+function showListError(list, err) {
+  const li = document.createElement("li");
+  li.className = "alert";
+  li.setAttribute("role", "alert");
+  li.textContent = `Не удалось загрузить: ${err.message}`;
+  list.replaceChildren(li);
+}
+
+/* Generic paged loader shared by both lists.
+   - Every request gets a sequence number; a response that is no longer the latest
+     (filters changed meanwhile) is dropped, so stale data never overwrites fresh.
+   - Appended pages skip ids already on screen (new leads shift offsets). */
+function skeletonCards() {
+  return Array.from({ length: SKELETON_CARDS }, () => {
+    const li = document.createElement("li");
+    li.className = "skeleton";
+    li.setAttribute("aria-hidden", "true");
+    return li;
+  });
+}
+
+const listSeq = { leads: 0, biz: 0 };
+async function loadList({ key, list, url, render, onData, emptyNode, resultEl, moreBtn, direction }, reset) {
+  const seq = ++listSeq[key];
+  const offset = reset ? 0 : state[key].offset;
+  list.setAttribute("aria-busy", "true");
+  moreBtn.disabled = true;
+  if (!list.children.length) list.replaceChildren(...skeletonCards());
+  try {
+    const data = await api(url(offset));
+    if (seq !== listSeq[key]) return; // superseded by a newer request
+    const shown = reset ? new Set() : new Set([...list.querySelectorAll(".card")].map((c) => c.dataset.id));
+    const nodes = data.items.filter((item) => !shown.has(String(item.id))).map(render);
+    state[key] = { ...state[key], loaded: true, total: data.total, offset: offset + data.items.length };
+    onData?.(data);
+    const previousTops = reset ? cardTops(list) : new Map();
+    if (reset) list.replaceChildren(...nodes); else list.append(...nodes);
+    if (!data.total) list.replaceChildren(emptyNode());
+    resultEl.textContent = data.total ? `Показано ${nf.format(Math.min(state[key].offset, data.total))} из ${nf.format(data.total)}` : "";
+    moreBtn.hidden = state[key].offset >= data.total;
+    animateListChange(nodes, previousTops, direction?.() ?? 1);
+  } catch (err) {
+    if (seq === listSeq[key] && !(err instanceof AuthError)) showListError(list, err);
+  } finally {
+    if (seq === listSeq[key]) { list.removeAttribute("aria-busy"); moreBtn.disabled = false; }
+  }
+}
+
+/* Mobile: secondary filters sit behind a toggle that shows how many are active. */
+function wireFilterToggle(form) {
+  const toggle = form.querySelector(".filters-toggle");
+  toggle.addEventListener("click", () => {
+    const open = form.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+}
+function showActiveFilterCount(form, count) {
+  const toggle = form.querySelector(".filters-toggle");
+  toggle.querySelector(".n").textContent = count ? ` · ${count}` : "";
+  toggle.setAttribute("aria-label", count ? `Фильтры, активно: ${count}` : "Фильтры");
+}
+
+/* ================================================================ leads */
+function leadQuery(extra = {}) {
+  const f = state.leads.filters;
+  const params = new URLSearchParams({ min_score: f.min_score, sort: f.sort });
+  if (f.q) params.set("q", f.q);
+  if (f.status) params.set("status", f.status);
+  if (f.source) params.set("source", f.source);
+  if (f.fixed_pay) params.set("fixed_pay", "true");
+  if (f.long_term) params.set("long_term", "true");
+  for (const [k, v] of Object.entries(extra)) params.set(k, v);
+  return params;
+}
+
+const leadsList = {
+  key: "leads", list: $("#lead-list"), resultEl: $("#lead-result"), moreBtn: $("#lead-more"), render: renderLead,
+  url: (offset) => `/api/leads?${leadQuery({ limit: PAGE, offset })}`,
+  direction: () => (state.leads.filters.sort === "oldest" ? -1 : 1),
+  emptyNode: () => {
+    const f = state.leads.filters;
+    return f.q || f.status || f.source || f.min_score !== "0" || f.fixed_pay || f.long_term
+      ? emptyState("Ничего не найдено", [["Попробуйте ослабить фильтры."]])
+      : emptyState("Заказов пока нет", [
+          ["Запустите монитор: ", { code: "python -m leadhub.monitor" }, ". Он читает только источники, настроенные в ", { code: ".env" }, "."],
+          ["Новые совпадения появятся здесь, а при включённых уведомлениях — и в Telegram."],
+        ]);
+  },
+};
+async function loadLeads(reset) {
+  const f = state.leads.filters;
+  $("#lead-export").href = `/api/leads/export.csv?${leadQuery()}`;
+  showActiveFilterCount($("#lead-filters"), [f.status, f.source, f.min_score !== "0"].filter(Boolean).length);
+  await loadList(leadsList, reset);
+}
+
+fillStatusOptions($("#lead-status"), true);
+const onLeadFilter = () => {
+  const form = $("#lead-filters").elements;
+  const filters = {
+    q: $("#lead-q").value.trim(), status: $("#lead-status").value,
+    min_score: $("#lead-min").value, source: $("#lead-source").value,
+    sort: form.sort.value, fixed_pay: form.fixed_pay.checked, long_term: form.long_term.checked,
+  };
+  state.leads = { ...state.leads, filters };
+  setHeroVisual({ fixed: filters.fixed_pay, long: filters.long_term, sortDir: filters.sort === "oldest" ? -1 : 1 });
+  loadLeads(true);
+};
+$("#lead-filters").addEventListener("input", debounce(onLeadFilter, SEARCH_DEBOUNCE_MS));
+$("#lead-filters").addEventListener("submit", (e) => { e.preventDefault(); onLeadFilter(); });
+$("#lead-more").addEventListener("click", () => loadLeads(false));
+wireFilterToggle($("#lead-filters"));
+wireList($("#lead-list"));
+
+/* =========================================================== businesses */
+function bizQuery(extra = {}) {
+  const f = state.biz.filters;
+  const params = new URLSearchParams();
+  if (f.q) params.set("q", f.q);
+  if (f.status) params.set("status", f.status);
+  if (f.city) params.set("city", f.city);
+  if (f.opportunity_only) params.set("opportunity_only", "true");
+  for (const [k, v] of Object.entries(extra)) params.set(k, v);
+  return params;
+}
+
+function renderCityOptions(cities) {
+  const select = $("#biz-city");
+  const current = state.biz.filters.city;
+  // An active filter must always be visible, even for a city with 0 results.
+  const options = current && !cities.includes(current) ? [...cities, current] : cities;
+  select.replaceChildren(new Option("Все", ""), ...options.map((c) => new Option(c, c)));
+  select.value = current || "";
+}
+
+const bizList = {
+  key: "biz", list: $("#biz-list"), resultEl: $("#biz-result"), moreBtn: $("#biz-more"), render: renderBusiness,
+  url: (offset) => `/api/businesses?${bizQuery({ limit: PAGE, offset })}`,
+  onData: (data) => renderCityOptions(data.cities),
+  emptyNode: () => {
+    const f = state.biz.filters;
+    return f.q || f.status || f.city || f.opportunity_only
+      ? emptyState("Ничего не найдено", [["Попробуйте ослабить фильтры."]])
+      : emptyState("Пока пусто", [["Введите город, выберите радиус и категории — найденные в OpenStreetMap бизнесы сохранятся здесь."]]);
+  },
+};
+async function loadBusinesses(reset) {
+  const f = state.biz.filters;
+  const firstLoad = !state.biz.loaded;
+  $("#biz-export").href = `/api/businesses/export.csv?${bizQuery()}`;
+  showActiveFilterCount($("#biz-filters"), [f.status, f.city, f.opportunity_only].filter(Boolean).length);
+  await loadList(bizList, reset);
+  // On phones, once businesses are stored, lead with the list; the finder stays one tap away.
+  if (firstLoad && state.biz.total > 0 && matchMedia("(max-width: 767px)").matches) $("#finder-box").open = false;
+}
+
+fillStatusOptions($("#biz-status"), true);
+const onBizFilter = () => {
+  state.biz = { ...state.biz, filters: {
+    q: $("#biz-q").value.trim(), status: $("#biz-status").value,
+    city: $("#biz-city").value, opportunity_only: $("#biz-opp").checked,
+  } };
+  loadBusinesses(true);
+};
+$("#biz-filters").addEventListener("input", debounce(onBizFilter, SEARCH_DEBOUNCE_MS));
+$("#biz-filters").addEventListener("submit", (e) => { e.preventDefault(); onBizFilter(); });
+$("#biz-more").addEventListener("click", () => loadBusinesses(false));
+wireFilterToggle($("#biz-filters"));
+wireList($("#biz-list"));
+
+/* =============================================================== finder */
+function renderFinder(meta) {
+  const saved = storage.get("leadhub-finder") || {};
+  state.categories = new Map(meta.categories.map((c) => [c.key, c.label]));
+  $("#city").value = saved.city || "";
+  const radius = meta.radii.includes(saved.radius_km) ? saved.radius_km : 3;
+  $("#radius").replaceChildren(...meta.radii.map((r) => {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "radio"; input.name = "radius_km"; input.value = String(r); input.checked = r === radius;
+    label.append(input, String(r));
+    return label;
+  }));
+  const chosen = new Set(saved.categories || meta.categories.filter((c) => c.default).map((c) => c.key));
+  $("#categories").replaceChildren(...meta.categories.map((c) => {
+    const label = document.createElement("label");
+    label.className = "chip";
+    const input = document.createElement("input");
+    input.type = "checkbox"; input.name = "categories"; input.value = c.key; input.checked = chosen.has(c.key);
+    label.append(input, c.label);
+    return label;
+  }));
+}
+
+function bold(n) { const b = document.createElement("b"); b.textContent = nf.format(n); return b; }
+
+$("#finder").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const status = $("#finder-status");
+  const submit = $("#finder-submit");
+  const city = $("#city").value.trim();
+  const radius_km = Number(new FormData(e.target).get("radius_km"));
+  const categories = [...document.querySelectorAll("#categories input:checked")].map((i) => i.value);
+  status.classList.remove("is-error");
+  if (city.length < 2) { status.classList.add("is-error"); status.textContent = "Введите название города."; $("#city").focus(); return; }
+  if (!categories.length) { status.classList.add("is-error"); status.textContent = "Выберите хотя бы одну категорию."; return; }
+  storage.set("leadhub-finder", { city, radius_km, categories });
+  submit.disabled = true;
+  $("#finder").setAttribute("aria-busy", "true");
+  status.textContent = "Ищем в OpenStreetMap… большой радиус может занять до 30 секунд.";
+  try {
+    const r = await api("/api/osm/search", { method: "POST", body: { city, radius_km, categories } });
+    status.replaceChildren(
+      "Найдено ", bold(r.found), ", новых ", bold(r.new), ", без сайта и мессенджера ", bold(r.opportunities),
+      ` · ${r.center.label}`, r.truncated ? " · показаны не все — уменьшите радиус." : "",
+    );
+    state.biz = { ...state.biz, filters: { ...state.biz.filters, city: r.city } };
+    await loadBusinesses(true);
+    refreshStats().catch(() => {});
+  } catch (err) {
+    if (err instanceof AuthError) return;
+    status.classList.add("is-error");
+    status.textContent = err.message;
+  } finally {
+    submit.disabled = false;
+    $("#finder").removeAttribute("aria-busy");
+  }
+});
+
+/* ================================================================= boot */
+/* All first-screen data is requested in parallel (no separate session round
+   trip); a 401 from any of them shows the login screen. Without the server's
+   non-secret hint cookie we know we're logged out and skip the requests. */
+async function showApp() {
+  const sourcesReq = api("/api/sources");
+  const metaReq = api("/api/osm/categories");
+  const statsReq = refreshStats().catch(() => {});
+  const leadsReq = loadLeads(true);
+  try {
+    const [sources, meta] = await Promise.all([sourcesReq, metaReq]);
+    renderSources(sources);
+    renderFinder(meta);
+  } catch (err) {
+    if (err instanceof AuthError) return;
+    $("#lead-result").textContent = `Ошибка: ${err.message}`;
+  }
+  await leaveLogin();
+  $("#login").hidden = true;
+  unmountLux("login-art"); // free the login stage's WebGL context
+  $("#app").hidden = false;
+  playHeroIntro();
+  if (location.hash === "#biz") selectTab($("#tab-biz"), false);
+  moveTabInk();
+  await Promise.allSettled([statsReq, leadsReq]);
+  scheduleLux("hero-art", "hero-canvas", { scale: 0.8, rich: true }); // only after the real data is on screen
+}
+
+
+/* ============================================================ 3D scene */
+/* "Onyx & gold": a faceted obsidian gem inside gold gyroscope rings with
+   orbiting gold satellites and a faint dust field, lit by a procedural studio
+   environment so the metal has real reflections. Mounted on the login stage
+   or in the header — never behind the data lists.
+   Lazy: three.js is imported on idle after the first screen has rendered.
+   Skipped (the static SVG composition stays) on reduced motion, no WebGL or
+   Save-Data. Paused while the tab is hidden or the stage is off screen. */
+function webglAvailable() {
+  try {
+    const c = document.createElement("canvas");
+    return Boolean(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+  } catch { return false; }
+}
+
+const luxMounts = new Map(); // host id → controller (null while loading)
+const LOW_MEMORY_GB = 4;
+const HERO_SCROLL_PX = 600;
+function scheduleLux(hostId, canvasId, options = {}) {
+  // Low-memory devices (often GPU-less) keep the static composition: the PBR scene is real work there.
+  const lowEnd = navigator.deviceMemory !== undefined && navigator.deviceMemory < LOW_MEMORY_GB;
+  if (luxMounts.has(hostId) || lowEnd || reduceMotionMq.matches || navigator.connection?.saveData || !webglAvailable()) return;
+  luxMounts.set(hostId, null);
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 900));
+  idle(() => {
+    createLuxScene($(`#${hostId}`), $(`#${canvasId}`), options)
+      .then((ctl) => {
+        if (!luxMounts.has(hostId)) { ctl.teardown(true); return; }
+        luxMounts.set(hostId, ctl);
+        if (hostId === "hero-art") window.__leadhub3d = ctl; // read-only test hook
+      })
+      .catch(() => { luxMounts.delete(hostId); /* keep the static composition */ });
+  }, { timeout: 2500 });
+}
+function unmountLux(hostId) {
+  const ctl = luxMounts.get(hostId);
+  luxMounts.delete(hostId);
+  ctl?.teardown(true);
+}
+
+function mulberry32(seed) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function roundSprite(THREE) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 32;
+  const ctx = c.getContext("2d");
+  const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.4, "rgba(255,255,255,.85)"); g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(c);
+}
+
+/* Procedural photo studio (softboxes) → prefiltered environment for PBR metal. */
+function buildStudio(THREE) {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x030303);
+  const geo = new THREE.PlaneGeometry(1, 1);
+  const mats = [];
+  const softbox = (w, h, intensity, tint, pos) => {
+    const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(tint).multiplyScalar(intensity), side: THREE.DoubleSide });
+    mats.push(mat);
+    const m = new THREE.Mesh(geo, mat);
+    m.scale.set(w, h, 1); m.position.set(...pos); m.lookAt(0, 0, 0);
+    scene.add(m);
+  };
+  softbox(8, 3, 6, 0xfff0d2, [0, 6, 4]);     // overhead key
+  softbox(3, 9, 3.5, 0xffe2b0, [-7, 0, 3]);  // warm left strip
+  softbox(2, 9, 4, 0xffffff, [7, 1, -1]);    // cool right strip (crisp highlights)
+  softbox(10, 2, 0.8, 0xd6b676, [0, -6, 0]); // gold floor bounce
+  return { scene, dispose: () => { geo.dispose(); mats.forEach((m) => m.dispose()); } };
+}
+
+function buildDust(THREE, count, sprite) {
+  const rand = mulberry32(20261108); // deterministic composition
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r = 4.2 + rand() * 3.2, theta = rand() * Math.PI * 2, phi = Math.acos(2 * rand() - 1);
+    positions.set([r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi) * 0.55, r * Math.sin(phi) * Math.sin(theta)], i * 3);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const mat = new THREE.PointsMaterial({ size: 0.07, map: sprite, transparent: true, opacity: 0.6, depthWrite: false });
+  return { points: new THREE.Points(geo, mat), geo, mat };
+}
+
+/* ---- hero model kit --------------------------------------------------
+   Procedural models tied to what the page is doing: the coin stack answers the
+   "fixed pay" filter, the hourglass "long-term", the gold city is the
+   businesses tab. Each returns { object, tick(dt, elapsed, energy), dispose }. */
+function buildCoinStack(THREE, gold, segments) {
+  const profile = [[0, -0.075], [0.5, -0.075], [0.6, -0.04], [0.6, 0.04], [0.5, 0.075], [0, 0.075]].map(([r, h]) => new THREE.Vector2(r, h));
+  const coinGeo = new THREE.LatheGeometry(profile, segments);
+  const rimGeo = new THREE.TorusGeometry(0.42, 0.016, 8, segments);
+  const COINS = 6;
+  const stack = new THREE.InstancedMesh(coinGeo, gold, COINS);
+  const rand = mulberry32(42), place = new THREE.Object3D();
+  for (let i = 0; i < COINS; i++) {
+    place.position.set((rand() - 0.5) * 0.09, i * 0.16, (rand() - 0.5) * 0.09);
+    place.rotation.y = rand() * Math.PI;
+    place.updateMatrix();
+    stack.setMatrixAt(i, place.matrix);
+  }
+  stack.position.y = -1;
+
+  const flyer = new THREE.Group();
+  const face = new THREE.Mesh(coinGeo, gold);
+  face.rotation.x = Math.PI / 2; // the disc faces the camera; the flyer spins about its vertical axis
+  flyer.add(face);
+  for (const side of [-1, 1]) {
+    const rim = new THREE.Mesh(rimGeo, gold);
+    rim.position.z = 0.08 * side;
+    flyer.add(rim);
+  }
+
+  const object = new THREE.Group();
+  object.add(stack, flyer);
+  return {
+    object,
+    tick(dt, t, energy) {
+      flyer.rotation.y += dt * (0.9 + energy * 5);
+      flyer.position.y = 0.72 + Math.sin(t * 1.4) * 0.08 + energy * 0.2;
+      object.rotation.y = Math.sin(t * 0.35) * 0.25;
+    },
+    dispose() { coinGeo.dispose(); rimGeo.dispose(); stack.dispose(); },
+  };
+}
+
+function buildHourglass(THREE, gold, segments) {
+  const CYCLE_S = 14, FLOW_END = 0.9;
+  const half = [[0.07, 0], [0.16, 0.1], [0.42, 0.42], [0.52, 0.72], [0.5, 0.96]];
+  const outline = [...half.slice(1).reverse().map(([r, h]) => [r, -h]), ...half].map(([r, h]) => new THREE.Vector2(r, h));
+  const glassGeo = new THREE.LatheGeometry(outline, segments);
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xfff2d8, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.11, side: THREE.DoubleSide, depthWrite: false });
+  const capGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.08, segments);
+  const pillarGeo = new THREE.CylinderGeometry(0.024, 0.024, 2.04, 10);
+  const cone = new THREE.ConeGeometry(0.36, 0.36, segments);
+  const topSandGeo = cone.clone().rotateX(Math.PI).translate(0, 0.18, 0); // apex at the neck, so it drains towards it
+  const pileGeo = cone.clone().translate(0, 0.18, 0);                     // base on the floor, so it grows upward
+  cone.dispose();
+  const streamGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.96, 6);
+
+  const body = new THREE.Group();
+  body.add(new THREE.Mesh(glassGeo, glassMat));
+  for (const side of [-1, 1]) {
+    const cap = new THREE.Mesh(capGeo, gold);
+    cap.position.y = 1.02 * side;
+    body.add(cap);
+  }
+  for (let i = 0; i < 3; i++) {
+    const pillar = new THREE.Mesh(pillarGeo, gold);
+    const angle = (i / 3) * Math.PI * 2 + 0.5;
+    pillar.position.set(Math.cos(angle) * 0.58, 0, Math.sin(angle) * 0.58);
+    body.add(pillar);
+  }
+  const topSand = new THREE.Mesh(topSandGeo, gold);
+  topSand.position.y = 0.12;
+  const pile = new THREE.Mesh(pileGeo, gold);
+  pile.position.y = -0.96;
+  const stream = new THREE.Mesh(streamGeo, gold);
+  stream.position.y = -0.48;
+  body.add(topSand, pile, stream);
+
+  const object = new THREE.Group();
+  object.add(body);
+  let clock = 0;
+  return {
+    object,
+    tick(dt, t, energy) {
+      clock += dt * (1 + energy * 2.4);
+      const phase = (clock % CYCLE_S) / CYCLE_S;
+      const flow = Math.min(phase / FLOW_END, 1);
+      // A full somersault resets the sand while it spins, so the loop has no visible seam.
+      const turn = phase > FLOW_END ? THREE.MathUtils.smoothstep((phase - FLOW_END) / (1 - FLOW_END), 0, 1) : 0;
+      const emptied = Math.max(0, 1 - turn * 2), refilled = Math.max(0, turn * 2 - 1);
+      topSand.scale.setScalar(Math.max(Math.cbrt(1 - flow), refilled) || 0.001);
+      pile.scale.setScalar(Math.cbrt(flow) * emptied || 0.001);
+      stream.visible = flow < 1;
+      body.rotation.z = Math.PI * 2 * turn;
+      object.rotation.y = t * (0.25 + energy * 0.5);
+    },
+    dispose() { [glassGeo, capGeo, pillarGeo, topSandGeo, pileGeo, streamGeo].forEach((g) => g.dispose()); glassMat.dispose(); },
+  };
+}
+
+const CITY_CENTER_HEIGHT = 1.05;
+function cityCells(radius, step, rand) {
+  const cells = [];
+  for (let x = -radius; x <= radius; x += step) {
+    for (let z = -radius; z <= radius; z += step) {
+      const dist = Math.hypot(x, z);
+      if (dist < step / 2) { cells.push({ x, z, height: CITY_CENTER_HEIGHT, isGold: true, delay: 0 }); continue; } // the pin's building
+      if (dist >= radius || rand() < 0.14) continue;
+      const falloff = 1 - (dist / radius) * 0.7;
+      cells.push({ x, z, height: (0.22 + rand() * rand() * 1.7) * falloff, isGold: rand() < 0.17, delay: (dist / radius) * 0.55 });
+    }
+  }
+  return cells;
+}
+
+function buildCity(THREE, gold, segments) {
+  const RADIUS = 2.5, PLATE = RADIUS + 0.35;
+  const cells = cityCells(RADIUS, 0.5, mulberry32(20261109));
+  const boxGeo = new THREE.BoxGeometry(0.38, 1, 0.38).translate(0, 0.5, 0); // scales up from the ground
+  // Low metalness: the warm graphite towers are shaped by the key light, not lost in dark reflections.
+  const towerMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.3, roughness: 0.42 });
+  const towers = new THREE.InstancedMesh(boxGeo, towerMat, cells.length);
+  towers.frustumCulled = false; // instance heights animate; the whole city is always in frame
+  const dark = new THREE.Color(0x6b5f4e), lit = new THREE.Color(0xe2bd72);
+  cells.forEach((cell, i) => towers.setColorAt(i, cell.isGold ? lit : dark));
+
+  const plateGeo = new THREE.CylinderGeometry(PLATE, PLATE, 0.07, segments * 2).translate(0, -0.035, 0);
+  const plateMat = new THREE.MeshStandardMaterial({ color: 0x14110d, metalness: 0.6, roughness: 0.4 });
+  const rimGeo = new THREE.TorusGeometry(PLATE, 0.02, 8, segments * 2);
+  const rim = new THREE.Mesh(rimGeo, gold);
+  rim.rotation.x = Math.PI / 2;
+
+  const pinHeadGeo = new THREE.SphereGeometry(0.2, 24, 16);
+  const pinTipGeo = new THREE.ConeGeometry(0.19, 0.44, 24).rotateX(Math.PI).translate(0, -0.26, 0);
+  const pin = new THREE.Group();
+  pin.add(new THREE.Mesh(pinHeadGeo, gold), new THREE.Mesh(pinTipGeo, gold));
+
+  const pulseGeo = new THREE.RingGeometry(0.96, 1, segments * 2).rotateX(-Math.PI / 2);
+  const pulseMat = new THREE.MeshBasicMaterial({ color: 0xd6b676, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  const pulses = [0, 0.5].map((offset) => {
+    const mesh = new THREE.Mesh(pulseGeo, pulseMat.clone());
+    mesh.position.y = 0.02;
+    return { mesh, offset };
+  });
+
+  const table = new THREE.Group();
+  table.add(new THREE.Mesh(plateGeo, plateMat), rim, towers, pin, ...pulses.map((p) => p.mesh));
+  const object = new THREE.Group();
+  object.add(table);
+  object.rotation.x = 0.46; // low enough to read the towers' sides
+
+  const place = new THREE.Object3D();
+  let shownRise = -1;
+  const raise = (rise) => {
+    cells.forEach((cell, i) => {
+      const k = THREE.MathUtils.smoothstep((rise - cell.delay) / (1 - cell.delay), 0, 1);
+      place.position.set(cell.x, 0, cell.z);
+      place.scale.set(1, Math.max(0.001, cell.height * k), 1);
+      place.updateMatrix();
+      towers.setMatrixAt(i, place.matrix);
+    });
+    towers.instanceMatrix.needsUpdate = true;
+    shownRise = rise;
+  };
+
+  return {
+    object,
+    pulseMaterials: pulses.map((p) => p.mesh.material),
+    tick(dt, t, appear) {
+      object.scale.setScalar(0.7 + 0.3 * appear);
+      table.rotation.y += dt * 0.1;
+      if (Math.abs(appear - shownRise) > 0.001) raise(appear);
+      pin.position.y = CITY_CENTER_HEIGHT + 0.62 + Math.sin(t * 1.6) * 0.08;
+      for (const { mesh, offset } of pulses) {
+        const life = (t * 0.28 + offset) % 1;
+        mesh.scale.setScalar(0.4 + life * (PLATE - 0.4));
+        mesh.material.opacity = (1 - life) * 0.55 * appear;
+      }
+    },
+    dispose() {
+      [boxGeo, plateGeo, rimGeo, pinHeadGeo, pinTipGeo, pulseGeo].forEach((g) => g.dispose());
+      [towerMat, plateMat, pulseMat, ...pulses.map((p) => p.mesh.material)].forEach((m) => m.dispose());
+      towers.dispose();
+    },
+  };
+}
+
+function buildHeroModels(THREE, gold, mobile) {
+  const segments = mobile ? 24 : 48;
+  const coin = buildCoinStack(THREE, gold, segments);
+  const glass = buildHourglass(THREE, gold, segments);
+  const city = buildCity(THREE, gold, segments);
+  const orbit = new THREE.Group();
+  orbit.add(coin.object, glass.object);
+  return { coin, glass, city, orbit, dispose() { coin.dispose(); glass.dispose(); city.dispose(); } };
+}
+
+async function createLuxScene(host, canvas, { scale = 1, x = 0, y = 0, rich = false } = {}) {
+  const THREE = await import("/static/vendor/three.module.min.js");
+  const mobile = innerWidth < 768;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.25 : 1.5));
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const studio = buildStudio(THREE);
+  const envTarget = pmrem.fromScene(studio.scene, 0.035);
+  scene.environment = envTarget.texture;
+  studio.dispose();
+  pmrem.dispose();
+
+  const camera = new THREE.PerspectiveCamera(30, 2, 0.1, 100);
+  camera.position.set(0, 0, 12);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.15));
+  const key = new THREE.DirectionalLight(0xfff1d6, 2.2); key.position.set(4, 5, 6);
+  const rim = new THREE.DirectionalLight(0xd6b676, 1.6); rim.position.set(-6, 1, -5);
+  scene.add(key, rim);
+
+  const rig = new THREE.Group();   // placement + pointer parallax
+  const spin = new THREE.Group();  // idle motion
+  rig.add(spin);
+  scene.add(rig);
+
+  // obsidian gem with champagne edge lines
+  const gemGeo = new THREE.IcosahedronGeometry(1.25, 0);
+  const gemMat = new THREE.MeshPhysicalMaterial({ color: 0x0b0a09, metalness: 0.4, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.06, flatShading: true });
+  const gem = new THREE.Mesh(gemGeo, gemMat);
+  const edgeGeo = new THREE.EdgesGeometry(gemGeo);
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xd6b676, transparent: true, opacity: 0.55 });
+  gem.add(new THREE.LineSegments(edgeGeo, edgeMat));
+  spin.add(gem);
+
+  // gold gyroscope rings, each carrying a satellite that rides along it
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xd9b46a, metalness: 1, roughness: 0.2 });
+  const satGeo = new THREE.SphereGeometry(1, 24, 16);
+  const ringGeos = [];
+  const rings = [
+    { r: 2.15, t: 0.04, tilt: [1.2, 0.3, 0], speed: 0.22, sat: 0.11 },
+    { r: 2.75, t: 0.024, tilt: [-0.5, 0.9, 0.4], speed: -0.15, sat: 0.08 },
+    { r: 3.35, t: 0.014, tilt: [0.25, -0.6, 1.1], speed: 0.09, sat: 0.06 },
+  ].map((spec) => {
+    const pivot = new THREE.Group();
+    pivot.rotation.set(...spec.tilt);
+    const geo = new THREE.TorusGeometry(spec.r, spec.t, 16, mobile ? 128 : 180);
+    ringGeos.push(geo);
+    const ring = new THREE.Mesh(geo, goldMat);
+    const sat = new THREE.Mesh(satGeo, goldMat);
+    sat.scale.setScalar(spec.sat);
+    sat.position.x = spec.r;
+    ring.add(sat);
+    pivot.add(ring);
+    spin.add(pivot);
+    return { ring, speed: spec.speed };
+  });
+
+  const sprite = roundSprite(THREE);
+  const dust = buildDust(THREE, mobile ? 140 : 260, sprite);
+  rig.add(dust.points);
+
+  const models = rich ? buildHeroModels(THREE, goldMat, mobile) : null;
+  if (models) { rig.add(models.city.object); scene.add(models.orbit); }
+  const anim = { mode: 0, fixed: 0, long: 0, dir: 1 };
+  let orbitScale = 0.8;
+
+  /* Eases toward heroVisual and returns how present the leads model (gem + rings) is. */
+  const updateHeroModels = (dt, t) => {
+    const { damp, smoothstep } = THREE.MathUtils;
+    anim.mode = damp(anim.mode, heroVisual.mode === "biz" ? 1 : 0, 3.4, dt);
+    anim.fixed = damp(anim.fixed, heroVisual.fixed ? 1 : 0, 6, dt);
+    anim.long = damp(anim.long, heroVisual.long ? 1 : 0, 6, dt);
+    anim.dir = damp(anim.dir, heroVisual.sortDir, 3, dt);
+    const leadsK = smoothstep(1 - anim.mode, 0.45, 1); // sequential: one model leaves before the other arrives
+    const bizK = smoothstep(anim.mode, 0.45, 1);
+    const { coin, glass, city, orbit } = models;
+    spin.visible = orbit.visible = leadsK > 0.01;
+    spin.rotation.z = (1 - leadsK) * 1.4;
+    coin.object.scale.setScalar(orbitScale * (0.8 + 0.4 * anim.fixed) * leadsK);
+    glass.object.scale.setScalar(orbitScale * (0.8 + 0.4 * anim.long) * leadsK);
+    if (orbit.visible) { coin.tick(dt, t, anim.fixed); glass.tick(dt, t, anim.long); }
+    city.object.visible = bizK > 0.01;
+    if (city.object.visible) city.tick(dt, t, bizK);
+    orbit.position.x = pointer.x * 0.16;
+    orbit.position.y = -pointer.y * 0.1;
+    const scrolled = Math.min(scrollY / HERO_SCROLL_PX, 1);
+    spin.rotation.x = scrolled * 0.5;
+    rig.position.y = y + scrolled * 0.55;
+    return leadsK;
+  };
+
+  const applyColors = () => {
+    const deco = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--gold-deco").trim() || "#C9A45C");
+    edgeMat.color.copy(deco);
+    dust.mat.color.copy(deco);
+    models?.city.pulseMaterials.forEach((m) => m.color.copy(deco));
+    if (!running) renderer.render(scene, camera);
+  };
+  const resize = () => {
+    const { clientWidth: w, clientHeight: h } = host;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const halfWidth = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
+    rig.scale.setScalar(scale * Math.max(0.55, Math.min(1, halfWidth / 3.9))); // keep the rings inside narrow stages
+    rig.position.set(x, y, 0);
+    if (models) {
+      // Phones: the band is free on both sides. Desktop: the left of the stage sits under the headline.
+      const halfHeight = halfWidth / camera.aspect, narrow = innerWidth < 768;
+      orbitScale = Math.min(0.62, halfHeight * 0.2);
+      models.coin.object.position.set(halfWidth * (narrow ? -0.74 : 0.74), narrow ? -0.1 : halfHeight * 0.1, 0);
+      models.glass.object.position.set(halfWidth * 0.74, narrow ? 0.1 : -halfHeight * 0.56, 0);
+    }
+  };
+
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  const onPointer = (e) => { pointer.tx = (e.clientX / innerWidth - 0.5) * 2; pointer.ty = (e.clientY / innerHeight - 0.5) * 2; };
+  const finePointer = matchMedia("(pointer: fine)").matches;
+  if (finePointer) addEventListener("pointermove", onPointer, { passive: true });
+
+  let running = false, inView = true, last = 0, elapsed = 0, shown = false, disposed = false;
+  const frame = (now) => {
+    const dt = Math.min((now - (last || now)) / 1000, 0.05);
+    last = now;
+    elapsed += dt;
+    const intro = 1 - Math.pow(1 - Math.min(elapsed / 1.8, 1), 3); // ease-out entrance
+    const leadsPresence = models ? updateHeroModels(dt, elapsed) : 1;
+    spin.scale.setScalar((0.84 + 0.16 * intro) * leadsPresence);
+    spin.rotation.y += dt * 0.12;
+    spin.position.y = Math.sin(elapsed * 0.6) * 0.08;
+    gem.rotation.x += dt * 0.18;
+    gem.rotation.y -= dt * 0.1;
+    for (const { ring, speed } of rings) ring.rotation.z += dt * speed * anim.dir; // "oldest first" runs the rings backwards
+    dust.points.rotation.y += dt * 0.02;
+    const k = Math.min(1, dt * 3);
+    pointer.x += (pointer.tx - pointer.x) * k;
+    pointer.y += (pointer.ty - pointer.y) * k;
+    rig.rotation.y = pointer.x * 0.3;
+    rig.rotation.x = pointer.y * 0.2;
+    renderer.render(scene, camera);
+    if (!shown) { shown = true; host.classList.add("is-3d"); }
+  };
+  const start = () => {
+    if (disposed || running || document.hidden || !inView || reduceMotionMq.matches) return;
+    running = true; last = 0;
+    renderer.setAnimationLoop(frame);
+  };
+  const stop = () => { running = false; renderer.setAnimationLoop(null); };
+
+  const resizeObs = new ResizeObserver(resize);
+  const viewObs = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; inView ? start() : stop(); });
+  const onVisibility = () => (document.hidden ? stop() : start());
+  const onTheme = () => { if (!disposed) applyColors(); };
+  const onMotion = (e) => { if (e.matches) teardown(); };
+  const onLost = (e) => { e.preventDefault(); teardown(); };
+
+  function teardown(release = false) {
+    if (disposed) return;
+    disposed = true;
+    stop();
+    host.classList.remove("is-3d");
+    resizeObs.disconnect(); viewObs.disconnect();
+    document.removeEventListener("visibilitychange", onVisibility);
+    document.removeEventListener("leadhub:theme", onTheme);
+    reduceMotionMq.removeEventListener("change", onMotion);
+    canvas.removeEventListener("webglcontextlost", onLost);
+    if (finePointer) removeEventListener("pointermove", onPointer);
+    [gemGeo, edgeGeo, satGeo, dust.geo, ...ringGeos].forEach((g) => g.dispose());
+    [gemMat, edgeMat, goldMat, dust.mat].forEach((m) => m.dispose());
+    sprite.dispose(); envTarget.dispose();
+    models?.dispose();
+    renderer.dispose();
+    if (release) renderer.forceContextLoss(); // canvas is retired (e.g. login → app)
+  }
+
+  resizeObs.observe(host);
+  viewObs.observe(host);
+  document.addEventListener("visibilitychange", onVisibility);
+  document.addEventListener("leadhub:theme", onTheme);
+  reduceMotionMq.addEventListener("change", onMotion);
+  canvas.addEventListener("webglcontextlost", onLost);
+
+  resize();
+  // Everything is visible here on purpose: compiling up front keeps the hero intro and the first tab switch from stalling.
+  await renderer.compileAsync(scene, camera);
+  if (models) models.city.object.visible = false; // unraised towers must never reach the screen
+  if (!disposed) { applyColors(); start(); }
+  return { teardown, get running() { return running; }, get disposed() { return disposed; }, get drawCalls() { return renderer.info.render.calls; }, get anim() { return { ...anim }; } };
+}
+
+/* ================================================================ start */
+/* Last, so every module-level binding above (e.g. luxMounts) is initialised. */
+if (/(?:^|;\s*)leadhub_hint=1/.test(document.cookie)) {
+  showApp().catch(() => { /* errors are rendered inline or lead to the login screen */ });
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>

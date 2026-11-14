@@ -1,0 +1,2386 @@
+<!doctype html>
+<!--
+  Lead Hub — single self-contained page (spec: one HTML file, no build step).
+  This file deliberately exceeds the 800-line soft ceiling: CSS, markup and JS
+  live together by requirement. Sections are delimited with banner comments.
+  Security: data is only ever rendered via textContent; no inline style attrs
+  (strict nonce CSP); external libs are vendored under /static/vendor.
+-->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex, nofollow">
+<title>Lead Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%2317140F'/%3E%3Cg stroke='%23C8A765' stroke-width='1.5'%3E%3Cpath d='M8 22 15 10 24 16 8 22'/%3E%3C/g%3E%3Cg fill='%23C8A765'%3E%3Ccircle cx='8' cy='22' r='2.5'/%3E%3Ccircle cx='15' cy='10' r='2.5'/%3E%3Ccircle cx='24' cy='16' r='2.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="/static/fonts/geist-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
+<style nonce="__CSP_NONCE__">
+/* ================================================================== fonts */
+/* Geist (variable, 100–900) sets all text; Instrument Serif Italic is the one accent word of the wordmark. */
+@font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url(/static/fonts/geist-cyrillic-wght-normal.woff2) format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url(/static/fonts/geist-latin-wght-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Instrument Serif"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url(/static/fonts/instrument-serif-latin-400-italic.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ================================================================= tokens */
+/* A ledger on pure black. Polished gold is the only metal and marks money and rank. */
+:root {
+  --bg: #000000; --surface: #0B0B0B; --surface-2: #151515;
+  --text: #F6F3EC; --body: #C9C5BB; --muted: #96918A;
+  --gold: #FFC93C; --gold-deco: #E8AE2C; --on-gold: #000000;
+  --metal: linear-gradient(102deg, #8A5A10 0%, #D79A22 16%, #FFE588 31%, #FFFBE6 40%, #F7BC36 52%, #A06C14 72%, #F2BE48 100%);
+  --metal-btn: linear-gradient(102deg, #D79A22 0%, #FFE588 34%, #FFFBE6 48%, #F7BC36 66%, #D79A22 100%);
+  --line: #1E1E1C; --line-strong: #6E6A62;
+  --scrim: rgba(0, 0, 0, .8); /* keeps text readable over the starfield */
+  --hero-scrim: linear-gradient(90deg, rgba(0, 0, 0, .8) 0%, rgba(0, 0, 0, .8) 40%, transparent 56%);
+  --hero-scrim-phone: linear-gradient(to bottom, transparent 58%, rgba(0, 0, 0, .8) 66%);
+  --danger: #FF8E76;
+  --st-new: #FFC93C; --st-contacted: #9CC4E4; --st-replied: #CBD77F; --st-client: #6FDB9B; --st-rejected: #9A958D;
+  --font-display: "Geist", "Segoe UI", system-ui, sans-serif;
+  --font-accent: "Instrument Serif", Georgia, serif;
+  --font-ui: "Geist", "Segoe UI", system-ui, sans-serif;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+  --tap: 44px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --ease-expo: cubic-bezier(.16, 1, .3, 1);
+  --dur: 180ms;
+  --dur-slow: 420ms;
+  --page: 1240px;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #F6F6F4; --surface: #FFFFFF; --surface-2: #EBEBE7;
+  --text: #0B0B0A; --body: #33322E; --muted: #5F5C55;
+  --gold: #7A5500; --gold-deco: #A87A12; --on-gold: #FFFFFF;
+  --metal: linear-gradient(102deg, #5C3F06 0%, #8F6410 34%, #A87A12 46%, #7A5500 60%, #5C3F06 100%);
+  --metal-btn: linear-gradient(102deg, #5C3F06 0%, #7A5500 50%, #5C3F06 100%);
+  --line: #DCDBD6; --line-strong: #85827A;
+  --scrim: transparent;
+  --hero-scrim: none;
+  --hero-scrim-phone: none;
+  --danger: #A63A22;
+  --st-new: #7A5500; --st-contacted: #2F5B7C; --st-replied: #55602A; --st-client: #1F6B40; --st-rejected: #625F58;
+  color-scheme: light;
+}
+
+/* =================================================================== base */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--font-ui); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+[hidden] { display: none !important; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+button, input, select, textarea { font: inherit; color: inherit; border-radius: 0; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: var(--space-4); top: -60px; z-index: 50; background: var(--gold); color: var(--on-gold); padding: var(--space-2) var(--space-4); font-weight: 600; text-decoration: none; }
+.skip:focus { top: var(--space-4); }
+.wrap { max-width: var(--page); margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
+@media (min-width: 768px) { .wrap { padding: 0 var(--space-6); } }
+code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .88em; }
+
+/* =============================================================== controls */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--tap); padding: 0 var(--space-4); border: 1px solid var(--line-strong); background: transparent; font-weight: 500; font-size: 14px; text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease), background-color var(--dur) var(--ease); }
+.btn:hover { border-color: var(--gold); color: var(--gold); }
+.btn:active { background: var(--surface-2); }
+.btn--primary { border: 0; background: var(--metal-btn); background-size: 220% 100%; background-position: 0% 0; color: var(--on-gold); font-weight: 600; transition: background-position var(--dur-slow) var(--ease-expo); }
+.btn--primary:hover { color: var(--on-gold); background-position: 62% 0; }
+.btn--primary:active { background-position: 100% 0; }
+.btn--quiet { border-color: transparent; color: var(--muted); padding: 0 var(--space-3); }
+.btn--quiet:hover { border-color: transparent; color: var(--text); }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.arrow { font-size: .9em; }
+
+.field { display: grid; gap: 6px; min-width: 0; }
+.field__label { font-size: 13px; font-weight: 500; color: var(--muted); }
+.input, .select, .textarea { width: 100%; min-height: var(--tap); padding: 0 var(--space-3); background: var(--bg); border: 1px solid var(--line-strong); transition: border-color var(--dur) var(--ease); }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--gold); }
+.input::placeholder, .textarea::placeholder { color: var(--muted); opacity: 1; }
+.select { appearance: none; padding-right: 34px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+.select option { background: var(--surface); color: var(--text); }
+.textarea { padding: var(--space-3); min-height: 84px; resize: vertical; line-height: 1.5; }
+.check { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--tap); cursor: pointer; font-size: 14px; white-space: nowrap; }
+.check input { width: 18px; height: 18px; accent-color: var(--gold); margin: 0; }
+
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; margin-bottom: 6px; }
+.segmented { display: inline-flex; border: 1px solid var(--line-strong); }
+.segmented label { position: relative; display: grid; place-items: center; min-width: 56px; min-height: calc(var(--tap) - 2px); padding: 0 var(--space-3); cursor: pointer; font-size: 14px; font-variant-numeric: tabular-nums; transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease); }
+.segmented label + label { border-left: 1px solid var(--line-strong); }
+.segmented label:hover { color: var(--gold); }
+.segmented input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.segmented label:has(input:checked) { background: var(--gold); color: var(--on-gold); font-weight: 600; }
+.segmented:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+.segmented--slide { position: relative; isolation: isolate; display: inline-grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.segmented--slide::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: -1; width: calc(100% / 3); background: var(--gold); transition: transform var(--dur-slow) var(--ease-expo); }
+.segmented--slide:has(input[value="oldest"]:checked)::before { transform: translateX(100%); }
+.segmented--slide:has(input[value="budget"]:checked)::before { transform: translateX(200%); }
+.budget { display: flex; align-items: center; gap: var(--space-2); }
+.budget .input { width: 7.5rem; font-variant-numeric: tabular-nums; appearance: textfield; }
+.budget .input::-webkit-inner-spin-button, .budget .input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.segmented--slide label { padding: 0 var(--space-4); white-space: nowrap; }
+.segmented--slide label + label { border-left: 0; }
+.segmented--slide label:has(input:checked) { background: transparent; }
+
+.toggles { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.toggle { position: relative; display: inline-grid; place-items: center; min-height: var(--tap); padding: 0 var(--space-4); border: 1px solid var(--line-strong); font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
+.toggle input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.toggle:hover { border-color: var(--gold); color: var(--gold); }
+.toggle:has(input:checked) { border-color: var(--gold); background: var(--gold); color: var(--on-gold); font-weight: 600; }
+.toggle:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--line-strong); font-size: 14px; cursor: pointer; transition: border-color var(--dur) var(--ease); }
+.chip:hover, .chip:has(input:checked) { border-color: var(--gold); }
+.chip input { width: 16px; height: 16px; accent-color: var(--gold); margin: 0; }
+.chip:has(input:focus-visible) { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ============================================================= wordmark */
+/* The one place gold is drawn as polished metal on type, plus the top score. */
+.wordmark { margin: 0; font: 600 clamp(60px, 7.4vw, 112px)/.95 var(--font-display); letter-spacing: -.045em; background: var(--metal); background-size: 180% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wordmark__accent { font: italic 400 1.08em/1 var(--font-accent); letter-spacing: -.01em; padding-right: .06em; } /* padding keeps the italic overhang inside the clipped gold */
+
+/* ============================================================== starfield */
+.starfield { position: fixed; top: 0; left: 0; z-index: -1; display: block; width: 100vw; height: 100vh; height: 100lvh; pointer-events: none; }
+:root[data-theme="light"] .starfield { display: none; } /* an additive night sky has no meaning on a light page */
+
+/* ================================================================== login */
+.login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(340px, 1fr); }
+.login__stage { position: relative; isolation: isolate; overflow: hidden; }
+.login__panel { display: grid; align-content: center; padding: var(--space-7) var(--space-6); border-left: 1px solid var(--line); background: var(--scrim); }
+.login__card { width: min(360px, 100%); }
+.login__card .wordmark { font-size: 76px; margin-bottom: var(--space-3); }
+.login__lede { color: var(--muted); margin: 0 0 var(--space-5); }
+.login form { display: grid; gap: var(--space-4); }
+.form-error { color: var(--danger); margin: 0; min-height: 1.5em; font-size: 14px; }
+
+/* ============================================================== 3D stages */
+.lux-art { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.lux-art__static, .lux-art__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity .9s var(--ease); }
+.lux-art__canvas { opacity: 0; }
+.lux-art.is-3d .lux-art__canvas { opacity: 1; }
+.lux-art.is-3d .lux-art__static { opacity: 0; }
+/* Scoped to the <g> itself: a selector through .lux-art__static cannot reach inside <use>,
+   and without these rules every ellipse is drawn with SVG's default solid black fill. */
+#lux-static .ring { fill: none; stroke: var(--gold-deco); }
+#lux-static .ring--1 { stroke-width: 2.2; }
+#lux-static .ring--2 { stroke-width: 1.2; opacity: .7; }
+#lux-static .ring--3 { stroke-width: .8; opacity: .5; }
+#lux-static .gem { fill: #050505; stroke: var(--gold-deco); stroke-width: 1; }
+#lux-static .facet { fill: none; stroke: var(--gold-deco); stroke-width: .8; opacity: .55; }
+#lux-static .sat { fill: var(--gold); }
+
+/* =============================================================== masthead */
+.hero { position: relative; isolation: isolate; overflow: hidden; background: var(--hero-scrim); }
+.hero .lux-art { left: 34%; -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 14%); mask-image: linear-gradient(to right, transparent 0%, #000 14%); }
+.hero__inner { position: relative; display: grid; gap: var(--space-6); padding-top: var(--space-5); padding-bottom: var(--space-5); }
+.hero__top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); }
+.hero__tools { display: flex; gap: var(--space-1); flex-shrink: 0; }
+.stats { margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-7); }
+.stat { margin: 0; display: flex; flex-direction: column; }
+.stat dt { order: 2; font-size: 13px; color: var(--muted); }
+.stat dd { order: 1; margin: 0; min-height: 1em; font: 600 52px/1 var(--font-display); letter-spacing: -.04em; font-variant-numeric: lining-nums tabular-nums; }
+.stat--accent dd { color: var(--gold); }
+
+/* =================================================================== tabs */
+.tabbar { position: sticky; top: 0; z-index: 10; background: var(--bg); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line); }
+.tabs { position: relative; display: flex; gap: var(--space-6); }
+.tabs__ink { position: absolute; left: 0; bottom: -1px; height: 3px; width: 1px; background: var(--gold); transform-origin: left; transition: transform var(--dur-slow) var(--ease-expo); pointer-events: none; }
+.tab { position: relative; display: inline-flex; align-items: baseline; gap: var(--space-2); min-height: 56px; padding: 12px 0 0; background: none; border: 0; cursor: pointer; font: 600 24px/1 var(--font-display); letter-spacing: -.025em; color: var(--muted); transition: color var(--dur) var(--ease); }
+.tab:hover, .tab[aria-selected="true"] { color: var(--text); }
+.tab__count { font: 500 14px/1 var(--font-ui); color: var(--muted); font-variant-numeric: tabular-nums; }
+.tab[aria-selected="true"] .tab__count { color: var(--gold); }
+
+/* ================================================================= panels */
+main { padding-bottom: var(--space-7); min-height: 100vh; min-height: 100svh; background: var(--scrim); }
+main:focus, .panel:focus { outline: none; }
+.panel { padding-top: var(--space-5); }
+.sources { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin: 0 0 var(--space-5); padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.source { display: inline-flex; align-items: center; gap: 6px; }
+.source b { color: var(--body); font-weight: 500; }
+.source[data-state="ok"] .source__state { color: var(--st-client); }
+.source[data-state="error"] .source__state { color: var(--danger); }
+.dot { width: 7px; height: 7px; border: 1px solid currentColor; display: inline-block; flex-shrink: 0; }
+.source[data-state="ok"] .dot { background: var(--st-client); border-color: var(--st-client); }
+.source[data-state="error"] .dot { background: var(--danger); border-color: var(--danger); }
+
+.filters { display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)) auto; gap: var(--space-3); align-items: end; margin-bottom: var(--space-4); }
+.filters--biz { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto auto; }
+.filters__more { display: contents; }
+.filters-toggle { display: none; }
+.filters-toggle .n { color: var(--gold); font-variant-numeric: tabular-nums; }
+.refine { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3) var(--space-6); }
+.refine__group { min-width: 0; }
+.result-line { margin: 0 0 var(--space-2); font-size: 13px; color: var(--muted); min-height: 1.4em; }
+/* Sticks just under the tab bar, so it stays in view while the reader is deep in the list. */
+.new-leads { position: sticky; top: 72px; z-index: 9; display: flex; width: max-content; max-width: 100%; margin: 0 auto var(--space-3); padding: 0 var(--space-5); border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, .55); }
+
+/* ================================================================= ledger */
+/* Each order is a ruled row, because the reader compares the same three things down the page. */
+.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-strong); }
+.card { --st: transparent; position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr) 176px; column-gap: var(--space-5); margin: 0 -12px; padding: var(--space-4) 12px var(--space-3); border-bottom: 1px solid var(--line); transition: background-color var(--dur) var(--ease); }
+.card:hover { background: var(--surface); }
+.card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--st); transition: background-color var(--dur) var(--ease); }
+.card[data-status="contacted"] { --st: var(--st-contacted); }
+.card[data-status="replied"] { --st: var(--st-replied); }
+.card[data-status="client"] { --st: var(--st-client); }
+.card[data-status="rejected"] { --st: var(--st-rejected); }
+.card[data-status="rejected"] .card__body { opacity: .7; }
+
+.card__rank { font: 600 48px/.9 var(--font-display); letter-spacing: -.04em; font-variant-numeric: lining-nums tabular-nums; color: var(--text); }
+.card.is-hot .card__rank { background: var(--metal); background-size: 180% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; }
+.biz__dist { font-size: 30px; line-height: 1.05; color: var(--text); }
+.card__body { min-width: 0; }
+.lead__title { margin: 0 0 var(--space-1); font-size: 17px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.lead__text { margin: 0; color: var(--body); font-size: 14px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; max-width: 78ch; }
+.lead__text.is-clamped { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.link-btn { background: none; border: 0; padding: var(--space-1) 0; min-height: 32px; color: var(--gold); cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+.matched { margin: var(--space-1) 0 0; font-size: 12px; color: var(--muted); }
+.matched b { font-weight: 500; color: var(--body); }
+
+.side { display: grid; align-content: start; gap: 3px; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.side .tag { color: var(--text); font-weight: 500; }
+.side time.is-fresh { color: var(--st-client); }
+.term { color: var(--gold); font-weight: 600; }
+.terms { display: grid; gap: 1px; margin-top: var(--space-1); }
+
+.biz__name { margin: 0; font: 600 24px/1.15 var(--font-display); letter-spacing: -.015em; overflow-wrap: break-word; }
+.biz__addr { margin: var(--space-1) 0 0; color: var(--body); font-size: 14px; }
+.contacts { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); font-size: 14px; }
+.contacts li { overflow-wrap: anywhere; }
+.contacts .k { color: var(--muted); margin-right: 6px; }
+
+.card__actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); }
+.card__actions .btn { min-height: 36px; font-size: 13px; }
+.status-field { display: inline-flex; align-items: center; }
+.status-field .select { width: auto; min-width: 136px; min-height: 36px; font-size: 13px; }
+.saved { font-size: 13px; color: var(--muted); }
+.saved.is-error { color: var(--danger); }
+.spacer { flex: 1; }
+.note { grid-column: 2 / -1; margin-top: var(--space-3); display: grid; gap: var(--space-2); }
+.note__row { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; }
+
+.empty { padding: var(--space-6) 0; color: var(--muted); }
+.empty h3 { margin: 0 0 var(--space-2); font: 600 24px/1.2 var(--font-display); letter-spacing: -.015em; color: var(--text); }
+.empty p { margin: 0 0 var(--space-2); max-width: 62ch; }
+.empty code { color: var(--text); background: var(--surface-2); padding: 1px 6px; }
+.more { margin-top: var(--space-4); display: flex; justify-content: center; }
+.alert { color: var(--danger); padding: var(--space-3) 0; }
+.skeleton { position: relative; overflow: hidden; height: 132px; border-bottom: 1px solid var(--line); }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, var(--surface-2) 50%, transparent 80%); transform: translateX(-100%); animation: shimmer 1.4s var(--ease) infinite; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* Rows rise as they scroll in. Backwards-only fill, so GSAP keeps control once a row has entered. */
+@supports (animation-timeline: view()) {
+  @media screen {
+    :root[data-motion="full"] .list > .card { animation: row-rise linear backwards; animation-timeline: view(); animation-range: entry 0% entry 22%; }
+  }
+}
+@keyframes row-rise { from { opacity: 0; transform: translateY(18px); } }
+
+/* ================================================================= finder */
+.finder-box { border-bottom: 1px solid var(--line-strong); margin-bottom: var(--space-4); }
+.finder-summary { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); min-height: 48px; cursor: pointer; list-style: none; font: 600 22px/1.2 var(--font-display); letter-spacing: -.015em; }
+.finder-summary::-webkit-details-marker { display: none; }
+.finder-summary::after { content: "+"; font: 400 24px/1 var(--font-ui); color: var(--gold); transition: transform var(--dur) var(--ease); }
+.finder-box[open] > .finder-summary::after { transform: rotate(45deg); }
+.finder-summary:hover { color: var(--gold); }
+.finder { display: grid; gap: var(--space-4); padding: var(--space-2) 0 var(--space-5); }
+.finder__row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--space-4); align-items: end; }
+.disclaimer { margin: 0 0 var(--space-4); font-size: 13px; color: var(--muted); }
+.disclaimer p { margin: 0; max-width: 90ch; }
+.disclaimer strong { color: var(--body); font-weight: 600; }
+.finder-status { min-height: 1.5em; margin: 0 0 var(--space-4); font-size: 14px; }
+.finder-status b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.finder-status.is-error { color: var(--danger); }
+.finder-status:empty { min-height: 0; margin: 0; }
+
+.footer { border-top: 1px solid var(--line); padding: var(--space-5) 0 var(--space-7); font-size: 13px; color: var(--muted); background: var(--scrim); }
+.footer p { margin: 0 0 var(--space-2); max-width: 80ch; }
+
+/* ============================================================= responsive */
+@media (max-width: 1023px) {
+  .filters, .filters--biz { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters .field--search { grid-column: 1 / -1; }
+  .hero .lux-art { left: 26%; }
+  .login { grid-template-columns: 1fr; grid-template-rows: minmax(260px, 42vh) auto; }
+  .login__panel { border-left: 0; border-top: 1px solid var(--line); }
+  .card { grid-template-columns: 60px minmax(0, 1fr) 140px; column-gap: var(--space-4); }
+}
+@media (max-width: 767px) {
+  .hero .lux-art { left: 0; top: 110px; bottom: auto; height: 206px; -webkit-mask-image: linear-gradient(to bottom, #000 96%, transparent); mask-image: linear-gradient(to bottom, #000 96%, transparent); }
+  .hero { background: var(--hero-scrim-phone); }
+  /* Three header buttons do not fit beside the wordmark: they get their own row under it. */
+  .hero__top { margin-bottom: 192px; flex-wrap: wrap; row-gap: var(--space-1); }
+  .hero__tools { width: 100%; margin-left: -6px; }
+  .hero__tools .btn--quiet { padding: 0 6px; font-size: 13px; }
+  .hero__inner { gap: var(--space-4); padding-top: var(--space-4); padding-bottom: var(--space-4); }
+  .wordmark { font-size: 44px; white-space: nowrap; }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  .stat dd { font-size: 40px; }
+  .tabs { gap: var(--space-5); }
+  .tab { font-size: 20px; }
+  .login__panel { padding: var(--space-6) var(--space-4); }
+  .source__hint { display: none; }
+  .sources { margin-bottom: var(--space-4); gap: 2px var(--space-4); }
+  .filters, .filters--biz { grid-template-columns: minmax(0, 1fr) auto; }
+  .filters .field--search { grid-column: auto; }
+  .filters-toggle { display: inline-flex; }
+  .filters__more { display: none; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); align-items: end; }
+  .filters.is-open .filters__more { display: grid; }
+  .filters__more .btn { grid-column: 1 / -1; }
+  .refine { gap: var(--space-3); }
+  .refine__group { flex: 1 1 100%; }
+  .segmented.segmented--slide { display: grid; }
+  .toggles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .budget .input { flex: 1; width: auto; min-width: 0; }
+  .toggle { padding: 0 var(--space-1); font-size: 13px; }
+  .card { grid-template-columns: 46px minmax(0, 1fr); column-gap: var(--space-3); padding-top: var(--space-3); }
+  .card__rank { font-size: 38px; }
+  .biz__dist { font-size: 18px; white-space: nowrap; }
+  .side { grid-column: 2; grid-row: 2; display: flex; flex-wrap: wrap; gap: 2px var(--space-3); margin-top: var(--space-2); }
+  .terms { display: contents; }
+  .card__actions, .note { grid-column: 1 / -1; }
+  .card__actions .btn { flex: 1; min-height: var(--tap); }
+  .status-field { flex: 1 1 100%; }
+  .status-field .select { flex: 1; min-height: var(--tap); }
+  .spacer { display: none; }
+  .finder__row { grid-template-columns: 1fr; }
+  .segmented { display: flex; }
+  .segmented label { flex: 1; min-width: 0; }
+  .biz__name { font-size: 21px; }
+}
+/* Set from the OS preference or the header "Анимация" button (see reduceMotionMq). */
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; scroll-behavior: auto !important; }
+@media (forced-colors: active) {
+  .card::before, .dot { forced-color-adjust: none; }
+  .wordmark, .card.is-hot .card__rank { background: none; color: CanvasText; }
+}
+</style>
+</head>
+<body>
+<canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
+<a class="skip" href="#main">Перейти к содержимому</a>
+
+<!-- ================================================================ login -->
+<section class="login" id="login" aria-labelledby="login-title" hidden>
+  <div class="login__stage">
+    <div class="lux-art" id="login-art" aria-hidden="true">
+      <svg class="lux-art__static" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" focusable="false"><use href="#lux-static"/></svg>
+      <canvas class="lux-art__canvas" id="login-canvas"></canvas>
+    </div>
+  </div>
+  <div class="login__panel">
+    <div class="login__card">
+      <h1 class="wordmark" id="login-title">Lead <em class="wordmark__accent">hub.</em></h1>
+      <p class="login__lede">Пароль лежит в файле <code>.env</code>, строка <code>LEADHUB_PASSWORD</code>.</p>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="password">Пароль</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="form-error" id="login-error" role="alert"></p>
+        <button class="btn btn--primary" type="submit">Войти</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Shared static composition: the 3D scene's fallback (reduced motion / no WebGL) -->
+<svg width="0" height="0" class="visually-hidden" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="lux-static">
+      <ellipse class="ring ring--3" cx="380" cy="200" rx="245" ry="46" transform="rotate(-8 380 200)"/>
+      <ellipse class="ring ring--2" cx="380" cy="200" rx="205" ry="92" transform="rotate(26 380 200)"/>
+      <polygon class="gem" points="380,112 452,166 436,252 380,290 324,252 308,166"/>
+      <path class="facet" d="M380 112 L380 290 M308 166 L452 166 M324 252 L436 252 M380 112 L324 252 M380 112 L436 252 M308 166 L380 290 M452 166 L380 290"/>
+      <ellipse class="ring ring--1" cx="380" cy="200" rx="168" ry="58" transform="rotate(-18 380 200)"/>
+      <circle class="sat" cx="533" cy="150" r="5"/><circle class="sat" cx="232" cy="252" r="4"/><circle class="sat" cx="566" cy="262" r="3"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ================================================================== app -->
+<div id="app" hidden>
+  <header class="hero">
+    <div class="lux-art" id="hero-art" aria-hidden="true">
+      <svg class="lux-art__static" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" focusable="false"><use href="#lux-static"/></svg>
+      <canvas class="lux-art__canvas" id="hero-canvas"></canvas>
+    </div>
+    <div class="wrap hero__inner">
+      <div class="hero__top">
+        <h1 class="wordmark">Lead <em class="wordmark__accent">hub.</em></h1>
+        <div class="hero__tools">
+          <button class="btn btn--quiet" type="button" id="motion-toggle"><span class="label" id="motion-label">Анимация</span></button>
+          <button class="btn btn--quiet" type="button" id="theme-toggle"><span class="label" id="theme-label">Тема</span></button>
+          <button class="btn btn--quiet" type="button" id="logout" aria-label="Выйти из Lead Hub"><span class="label">Выйти</span></button>
+        </div>
+      </div>
+      <dl class="stats" id="stats" aria-label="Сводка из базы">
+        <div class="stat stat--accent"><dt>новых заказов</dt><dd data-stat="new_leads"></dd></div>
+        <div class="stat"><dt>в работе</dt><dd data-stat="in_progress"></dd></div>
+        <div class="stat"><dt>клиентов</dt><dd data-stat="clients"></dd></div>
+        <div class="stat"><dt>бизнесов без сайта</dt><dd data-stat="opportunities"></dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <nav class="tabbar" aria-label="Разделы">
+    <div class="wrap">
+      <div class="tabs" role="tablist" aria-label="Разделы">
+        <button class="tab" role="tab" id="tab-leads" aria-controls="panel-leads" aria-selected="true" type="button">Заказы <span class="tab__count" id="count-leads"></span></button>
+        <button class="tab" role="tab" id="tab-biz" aria-controls="panel-biz" aria-selected="false" tabindex="-1" type="button">Бизнесы рядом <span class="tab__count" id="count-biz"></span></button>
+        <span class="tabs__ink" id="tabs-ink" aria-hidden="true"></span>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <!-- ------------------------------------------------------------ leads -->
+    <section class="panel" id="panel-leads" role="tabpanel" aria-labelledby="tab-leads">
+      <h2 class="visually-hidden">Заказы из чатов, сабреддитов и лент</h2>
+      <ul class="sources" id="sources" aria-label="Состояние источников"></ul>
+      <form class="filters" id="lead-filters" role="search" aria-label="Фильтры заказов">
+        <div class="field field--search">
+          <label class="field__label" for="lead-q">Поиск</label>
+          <input class="input" id="lead-q" name="q" type="search" placeholder="Текст, заметка, чат…" autocomplete="off" maxlength="200">
+        </div>
+        <button class="btn filters-toggle" type="button" aria-expanded="false" aria-controls="lead-more-filters">Фильтры<span class="n"></span></button>
+        <div class="filters__more" id="lead-more-filters">
+        <div class="field">
+          <label class="field__label" for="lead-status">Статус</label>
+          <select class="select" id="lead-status" name="status"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="lead-min">Мин. балл</label>
+          <select class="select" id="lead-min" name="min_score">
+            <option value="0">Любой</option><option value="5">5+</option><option value="7">7+</option><option value="9">9+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="lead-source">Источник</label>
+          <select class="select" id="lead-source" name="source">
+            <option value="">Все</option><option value="telegram">Telegram</option><option value="reddit">Reddit</option><option value="rss">RSS</option>
+          </select>
+        </div>
+        <a class="btn" id="lead-export" href="/api/leads/export.csv" download>Экспорт CSV</a>
+        </div>
+        <div class="refine">
+          <fieldset class="refine__group">
+            <legend class="field__label">Порядок</legend>
+            <div class="segmented segmented--slide">
+              <label><input type="radio" name="sort" value="newest" checked>Новые</label>
+              <label><input type="radio" name="sort" value="oldest">Старые</label>
+              <label><input type="radio" name="sort" value="budget">Дороже</label>
+            </div>
+          </fieldset>
+          <fieldset class="refine__group">
+            <legend class="field__label">Бюджет, €</legend>
+            <div class="budget">
+              <input class="input" name="min_budget" type="number" inputmode="numeric" min="0" step="50" placeholder="от" aria-label="Бюджет от, евро">
+              <span aria-hidden="true">–</span>
+              <input class="input" name="max_budget" type="number" inputmode="numeric" min="0" step="50" placeholder="до" aria-label="Бюджет до, евро">
+            </div>
+          </fieldset>
+          <fieldset class="refine__group">
+            <legend class="field__label">Условия заказа</legend>
+            <div class="toggles">
+              <label class="toggle"><input type="checkbox" name="one_off">Разовый</label>
+              <label class="toggle"><input type="checkbox" name="fixed_pay">Фикс. оплата</label>
+              <label class="toggle"><input type="checkbox" name="long_term">Долгосрочно</label>
+            </div>
+          </fieldset>
+        </div>
+      </form>
+      <button class="btn btn--primary new-leads" type="button" id="lead-new" hidden></button>
+      <p class="result-line" id="lead-result" aria-live="polite"></p>
+      <ol class="list" id="lead-list" aria-label="Заказы" tabindex="-1"></ol>
+      <div class="more"><button class="btn" type="button" id="lead-more" hidden>Показать ещё</button></div>
+    </section>
+
+    <!-- -------------------------------------------------------- businesses -->
+    <section class="panel" id="panel-biz" role="tabpanel" aria-labelledby="tab-biz" hidden>
+      <h2 class="visually-hidden">Поиск местных бизнесов</h2>
+      <details class="finder-box" id="finder-box" open>
+      <summary class="finder-summary">Найти бизнесы в любом городе</summary>
+      <form class="finder" id="finder" aria-label="Поиск бизнесов в OpenStreetMap" novalidate>
+        <div class="finder__row">
+          <div class="field">
+            <label class="field__label" for="city">Город</label>
+            <input class="input" id="city" name="city" required minlength="2" maxlength="120" autocomplete="address-level2" placeholder="Город и страна: A Coruña, España">
+          </div>
+          <fieldset>
+            <legend class="field__label">Радиус, км</legend>
+            <div class="segmented" id="radius"></div>
+          </fieldset>
+          <button class="btn btn--primary" type="submit" id="finder-submit">Найти бизнесы</button>
+        </div>
+        <fieldset>
+          <legend class="field__label">Категории</legend>
+          <div class="chips" id="categories"></div>
+        </fieldset>
+      </form>
+      </details>
+      <aside class="disclaimer" aria-label="О данных OpenStreetMap">
+        <p><strong>Данные OSM неполные.</strong> Их вносят добровольцы: «нет сайта» может означать лишь, что его никто не указал на карте. Прежде чем писать бизнесу, проверьте его в поиске, на картах и в соцсетях.</p>
+      </aside>
+      <p class="finder-status" id="finder-status" role="status"></p>
+
+      <form class="filters filters--biz" id="biz-filters" role="search" aria-label="Фильтры бизнесов">
+        <div class="field field--search">
+          <label class="field__label" for="biz-q">Поиск</label>
+          <input class="input" id="biz-q" name="q" type="search" placeholder="Название, адрес, заметка…" autocomplete="off" maxlength="200">
+        </div>
+        <button class="btn filters-toggle" type="button" aria-expanded="false" aria-controls="biz-more-filters">Фильтры<span class="n"></span></button>
+        <div class="filters__more" id="biz-more-filters">
+        <div class="field">
+          <label class="field__label" for="biz-status">Статус</label>
+          <select class="select" id="biz-status" name="status"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="biz-city">Город</label>
+          <select class="select" id="biz-city" name="city"><option value="">Все</option></select>
+        </div>
+        <label class="check"><input type="checkbox" id="biz-opp" name="opportunity_only"> Только без сайта</label>
+        <a class="btn" id="biz-export" href="/api/businesses/export.csv" download>Экспорт CSV</a>
+        </div>
+      </form>
+      <p class="result-line" id="biz-result" aria-live="polite"></p>
+      <ol class="list" id="biz-list" aria-label="Бизнесы"></ol>
+      <div class="more"><button class="btn" type="button" id="biz-more" hidden>Показать ещё</button></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>Мониторинг только для чтения: Lead Hub ничего не публикует и не отвечает в чатах, сабреддитах и лентах. Уведомления приходят только вам.</p>
+      <p>Данные карт © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">участники OpenStreetMap</a>, лицензия ODbL.</p>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================================================ templates -->
+<template id="tpl-lead">
+  <li class="card lead">
+    <div class="card__rank"><span data-f="score"></span><span class="visually-hidden" data-f="score_of"></span></div>
+    <div class="card__body">
+      <p class="lead__title" data-f="title"></p>
+      <p class="lead__text" data-f="text"></p>
+      <button class="link-btn" type="button" data-act="expand" aria-expanded="false" hidden>Показать полностью</button>
+      <p class="matched" data-f="matched"></p>
+    </div>
+    <div class="side">
+      <span class="tag" data-f="source"></span><span data-f="source_name"></span><time data-f="time"></time><span data-f="author"></span>
+      <div class="terms" data-f="terms"></div>
+    </div>
+    <div class="card__actions">
+      <span class="status-field"><label class="visually-hidden" data-f="status_label">Статус</label><select class="select" data-act="status"></select></span>
+      <span class="saved" data-f="saved" role="status"></span>
+      <span class="spacer"></span>
+      <button class="btn btn--quiet" type="button" data-act="note-toggle" aria-expanded="false">Заметка</button>
+      <a class="btn" data-f="link" target="_blank" rel="noopener noreferrer">Открыть <span class="arrow" aria-hidden="true">↗</span><span class="visually-hidden"> (в новой вкладке)</span></a>
+    </div>
+    <div class="note" data-f="note_box" hidden>
+      <label class="field__label" data-f="note_label">Заметка</label>
+      <textarea class="textarea" data-f="note" maxlength="4000"></textarea>
+      <div class="note__row"><button class="btn" type="button" data-act="note-save">Сохранить заметку</button><span class="saved" data-f="note_saved" role="status"></span></div>
+    </div>
+  </li>
+</template>
+
+<template id="tpl-biz">
+  <li class="card biz">
+    <div class="card__rank biz__dist" data-f="distance"></div>
+    <div class="card__body">
+      <h3 class="biz__name" data-f="name"></h3>
+      <p class="biz__addr" data-f="address"></p>
+      <ul class="contacts" data-f="contacts"></ul>
+    </div>
+    <div class="side">
+      <span class="tag" data-f="category"></span><span data-f="city"></span>
+      <span class="term" data-f="flag" hidden>Нет сайта и мессенджера</span>
+    </div>
+    <div class="card__actions">
+      <span class="status-field"><label class="visually-hidden" data-f="status_label">Статус</label><select class="select" data-act="status"></select></span>
+      <span class="saved" data-f="saved" role="status"></span>
+      <span class="spacer"></span>
+      <button class="btn btn--quiet" type="button" data-act="note-toggle" aria-expanded="false">Заметка</button>
+      <a class="btn" data-f="osm" target="_blank" rel="noopener noreferrer">На карте <span class="arrow" aria-hidden="true">↗</span><span class="visually-hidden"> (OpenStreetMap, новая вкладка)</span></a>
+    </div>
+    <div class="note" data-f="note_box" hidden>
+      <label class="field__label" data-f="note_label">Заметка</label>
+      <textarea class="textarea" data-f="note" maxlength="4000"></textarea>
+      <div class="note__row"><button class="btn" type="button" data-act="note-save">Сохранить заметку</button><span class="saved" data-f="note_saved" role="status"></span></div>
+    </div>
+  </li>
+</template>
+
+<!-- async: GSAP must never hold back the app script; motion simply starts once it has arrived -->
+<script src="/static/vendor/gsap-3.13.0.min.js" nonce="__CSP_NONCE__" async></script>
+<script type="module" nonce="__CSP_NONCE__">
+/* ============================================================ constants */
+const STATUS = { new: "Новый", contacted: "Написал", replied: "Ответили", client: "Клиент", rejected: "Отказ" };
+const SOURCE = { telegram: "Telegram", reddit: "Reddit", rss: "RSS" };
+const PAGE = 50;
+const CLAMP_CHARS = 260;
+const CLAMP_LINES = 3;
+const DEFAULT_CITY = "A Coruña";
+const SEARCH_DEBOUNCE_MS = 260;
+const FRESH_MS = 48 * 3600 * 1000;
+const HOT_SCORE_RATIO = 1; // only top-scoring leads stand out; a highlight on half the list highlights nothing
+const SKELETON_CARDS = 4;
+const $ = (sel, root = document) => root.querySelector(sel);
+const field = (node, name) => node.querySelector(`[data-f="${name}"]`);
+
+const state = {
+  maxScore: 12,
+  categories: new Map(),
+  leads: { total: 0, offset: 0, filters: { q: "", status: "", min_score: "0", source: "", sort: "newest", one_off: false, fixed_pay: false, long_term: false, min_budget: "", max_budget: "" } },
+  biz: { total: 0, offset: 0, loaded: false, filters: { q: "", status: "", city: "", opportunity_only: false } },
+  shown: { new_leads: 0, in_progress: 0, clients: 0, opportunities: 0 },
+};
+
+/* What the hero's 3D scene should show; the render loop reads this every frame. */
+let heroVisual = { mode: "leads", fixed: false, long: false, oneOff: false, sortDir: 1, fixedCount: 0, longCount: 0, goldShare: 0.2 };
+let onHeroVisualChange = null; // set by the scene while it shows a still frame and must redraw on demand
+const setHeroVisual = (patch) => { heroVisual = { ...heroVisual, ...patch }; onHeroVisualChange?.(); };
+
+/* ================================================================== api */
+class AuthError extends Error {}
+
+function detailText(detail) {
+  if (!detail) return "";
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) return detail.map((d) => d.msg || "").filter(Boolean).join("; ");
+  return "";
+}
+
+async function api(path, { method = "GET", body } = {}) {
+  const headers = { "X-LeadHub": "1" };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  let res;
+  try {
+    res = await fetch(path, { method, headers, credentials: "same-origin", body: body === undefined ? undefined : JSON.stringify(body) });
+  } catch {
+    throw new Error("Сервер недоступен. Проверьте, что Lead Hub запущен.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== "/api/login") { showLogin(); throw new AuthError("auth"); }
+  if (!res.ok) throw new Error(detailText(data.detail) || `Ошибка ${res.status}`);
+  return data;
+}
+
+/* ============================================================== helpers */
+const motionOk = () => !reduceMotionMq.matches && typeof window.gsap !== "undefined";
+const rtf = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
+const nf = new Intl.NumberFormat("ru-RU");
+
+function timeAgo(iso) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  const sec = (t - Date.now()) / 1000, abs = Math.abs(sec);
+  if (abs < 60) return "только что";
+  if (abs < 3600) return rtf.format(Math.round(sec / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(sec / 3600), "hour");
+  if (abs < 86400 * 30) return rtf.format(Math.round(sec / 86400), "day");
+  return new Date(t).toLocaleDateString("ru-RU");
+}
+const distance = (m) => (m < 1000 ? `${m} м` : `${(m / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} км`);
+const isHttp = (url) => /^https?:\/\//i.test(url || "");
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const plural = (n, one, few, many) => {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+};
+const storage = {
+  get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode: ignore */ } },
+};
+
+/* Motion is on unless the viewer turns it off with the header button. The owner asked for the
+   animated backdrop explicitly, so the OS hint ("prefers-reduced-motion"; on Windows "Animation
+   effects", often off by default) only applies once they choose "system". Same shape as a
+   MediaQueryList, so every consumer reads .matches and listens for "change"; CSS reads :root[data-motion]. */
+const MOTION_KEY = "leadhub-motion";
+const reduceMotionMq = (() => {
+  const os = matchMedia("(prefers-reduced-motion: reduce)");
+  const events = new EventTarget();
+  const compute = () => {
+    const choice = storage.get(MOTION_KEY);
+    if (choice === "off") return true;
+    return choice === "system" ? os.matches : false;
+  };
+  let matches = compute();
+  const mark = () => { document.documentElement.dataset.motion = matches ? "reduce" : "full"; };
+  const sync = () => {
+    const next = compute();
+    if (next === matches) return;
+    matches = next;
+    mark();
+    events.dispatchEvent(Object.assign(new Event("change"), { matches }));
+  };
+  os.addEventListener("change", sync);
+  mark();
+  return {
+    get matches() { return matches; },
+    addEventListener: (type, fn) => events.addEventListener(type, fn),
+    removeEventListener: (type, fn) => events.removeEventListener(type, fn),
+    choose(choice) { storage.set(MOTION_KEY, choice); sync(); },
+  };
+})();
+
+function fillStatusOptions(select, withAll) {
+  const options = withAll ? [["", "Все"], ...Object.entries(STATUS)] : Object.entries(STATUS);
+  select.replaceChildren(...options.map(([value, label]) => new Option(label, value)));
+}
+
+/* ============================================================== motion */
+const REVEAL_LIMIT = 14; // animate what is on screen; the rest appear instantly
+const FLIP_LIMIT = 24;
+
+/* New rows slide in from the direction the list runs; `direction` is -1 when it is oldest-first. */
+function revealItems(nodes, direction = 1) {
+  if (!motionOk() || !nodes.length) return;
+  window.gsap.from(nodes.slice(0, REVEAL_LIMIT), {
+    opacity: 0, y: 14 * direction, duration: 0.4, ease: "expo.out", stagger: 0.025, clearProps: "opacity,transform",
+  });
+}
+
+function cardTops(list) {
+  if (!motionOk()) return new Map();
+  return new Map([...list.querySelectorAll(":scope > .card")].map((c) => [c.dataset.id, c.getBoundingClientRect().top]));
+}
+
+/* FLIP: cards that survive a filter change glide to their new place; the others tip in. */
+function animateListChange(nodes, previousTops, direction) {
+  if (!motionOk() || !nodes.length) return;
+  const kept = nodes.filter((n) => previousTops.has(n.dataset.id));
+  const offsets = kept.map((node) => {
+    const top = node.getBoundingClientRect().top;
+    return { node, delta: previousTops.get(node.dataset.id) - top, top };
+  });
+  offsets
+    .filter(({ delta, top }) => Math.abs(delta) > 1 && Math.min(top, top + delta) < innerHeight)
+    .slice(0, FLIP_LIMIT)
+    .forEach(({ node, delta }) => {
+      window.gsap.fromTo(node, { y: delta }, { y: 0, duration: 0.62, ease: "expo.out", clearProps: "transform" });
+    });
+  revealItems(nodes.filter((n) => !previousTops.has(n.dataset.id)), direction);
+}
+
+function animatePanel(panel, direction) {
+  if (!motionOk()) return;
+  window.gsap.fromTo(panel, { opacity: 0, x: 36 * direction }, { opacity: 1, x: 0, duration: 0.55, ease: "expo.out", clearProps: "opacity,transform" });
+}
+
+function playHeroIntro() {
+  if (!motionOk()) return;
+  const clearProps = "opacity,transform";
+  window.gsap.timeline({ defaults: { ease: "expo.out", duration: 0.5 } })
+    .fromTo(".hero .wordmark", { backgroundPosition: "100% 0" }, { backgroundPosition: "0% 0", duration: 1.4, ease: "power2.out", clearProps: "backgroundPosition" }) // one pass of light across the metal
+    .from(".stat", { opacity: 0, y: 10, stagger: 0.04, clearProps }, 0.1);
+}
+
+async function leaveLogin() {
+  const login = $("#login");
+  if (login.hidden || !motionOk()) return;
+  await window.gsap.to(login, { opacity: 0, scale: 1.015, duration: 0.42, ease: "power2.in" });
+  window.gsap.set(login, { clearProps: "opacity,transform" });
+}
+
+function shake(el) {
+  if (motionOk()) window.gsap.fromTo(el, { x: -8 }, { x: 0, duration: 0.5, ease: "elastic.out(1.1,.3)", clearProps: "transform" });
+}
+
+function countTo(el, to) {
+  const key = el.dataset.stat;
+  const from = state.shown[key] ?? 0;
+  state.shown = { ...state.shown, [key]: to };
+  if (!motionOk() || (from === to && el.textContent !== "")) { el.textContent = nf.format(to); return; }
+  const counter = { v: from };
+  window.gsap.to(counter, { v: to, duration: 1.1, ease: "power2.out", onUpdate: () => { el.textContent = nf.format(Math.round(counter.v)); } });
+}
+
+function confirmStatus(card, message, isError = false) {
+  const saved = field(card, "saved");
+  saved.textContent = message;
+  saved.classList.toggle("is-error", isError);
+  if (!motionOk()) { setTimeout(() => { saved.textContent = ""; }, 2600); return; }
+  window.gsap.killTweensOf(saved);
+  window.gsap.fromTo(saved, { opacity: 0 }, { opacity: 1, duration: 0.25 });
+  window.gsap.to(saved, { opacity: 0, delay: 2.2, duration: 0.4, onComplete: () => { saved.textContent = ""; window.gsap.set(saved, { clearProps: "opacity" }); } });
+}
+
+/* ================================================================ login */
+function showLogin() {
+  $("#app").hidden = true;
+  $("#login").hidden = false;
+  $("#password").focus();
+  scheduleLux("login-art", "login-canvas", { scale: 1.05 });
+  if (motionOk()) window.gsap.from(".login__card > *", { opacity: 0, y: 18, duration: 0.8, ease: "expo.out", stagger: 0.08, clearProps: "opacity,transform" });
+}
+
+$("#login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const error = $("#login-error");
+  error.textContent = "";
+  try {
+    await api("/api/login", { method: "POST", body: { password: $("#password").value } });
+    $("#password").value = "";
+    await showApp();
+    $("#main").focus({ preventScroll: true }); // the focused password field is now hidden
+  } catch (err) {
+    error.textContent = err.message;
+    $("#password").select();
+    shake($(".login__card"));
+  }
+});
+
+$("#logout").addEventListener("click", async () => {
+  await api("/api/logout", { method: "POST" }).catch(() => {});
+  location.reload();
+});
+
+/* ================================================================ theme */
+/* Dark ("onyx") is the house style; light is an explicit opt-in that is remembered. */
+function applyTheme(theme) {
+  const effective = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = effective;
+  $("#theme-label").textContent = effective === "light" ? "Светлая" : "Тёмная";
+  $("#theme-toggle").setAttribute("aria-label", `Тема: ${effective === "light" ? "светлая" : "тёмная"}. Переключить`);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", effective === "light" ? "#F6F6F4" : "#000000");
+  document.dispatchEvent(new CustomEvent("leadhub:theme"));
+}
+$("#theme-toggle").addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  storage.set("leadhub-theme", next);
+  if (document.startViewTransition && !reduceMotionMq.matches) document.startViewTransition(() => applyTheme(next));
+  else applyTheme(next);
+});
+applyTheme(storage.get("leadhub-theme"));
+
+/* =============================================================== motion */
+function renderMotionToggle() {
+  const on = !reduceMotionMq.matches;
+  $("#motion-label").textContent = on ? "Анимация: вкл" : "Анимация: выкл";
+  $("#motion-toggle").setAttribute("aria-label", `Анимация ${on ? "включена" : "выключена"}. Переключить`);
+}
+$("#motion-toggle").addEventListener("click", () => reduceMotionMq.choose(reduceMotionMq.matches ? "on" : "off"));
+reduceMotionMq.addEventListener("change", renderMotionToggle);
+renderMotionToggle();
+
+/* ================================================================= tabs */
+const tabs = [$("#tab-leads"), $("#tab-biz")];
+/* Gold ink slides to the active tab (transform-only: translateX + scaleX of a 1px bar). */
+function moveTabInk() {
+  const active = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+  if (!active || !active.offsetWidth) return;
+  $("#tabs-ink").style.transform = `translateX(${active.offsetLeft}px) scaleX(${active.offsetWidth})`;
+}
+new ResizeObserver(moveTabInk).observe($(".tabs"));
+document.fonts?.ready.then(moveTabInk);
+function selectTab(tab, focus = true) {
+  const previous = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+  for (const t of tabs) {
+    const active = t === tab;
+    t.setAttribute("aria-selected", String(active));
+    t.tabIndex = active ? 0 : -1;
+    $(`#${t.getAttribute("aria-controls")}`).hidden = !active;
+  }
+  if (focus) tab.focus();
+  moveTabInk();
+  const isBiz = tab.id === "tab-biz";
+  if (previous !== tab) animatePanel($(`#${tab.getAttribute("aria-controls")}`), tabs.indexOf(tab) > tabs.indexOf(previous) ? 1 : -1);
+  setHeroVisual({ mode: isBiz ? "biz" : "leads" });
+  history.replaceState(null, "", isBiz ? "#biz" : "#leads");
+  if (isBiz && !state.biz.loaded && !state.biz.loading) {
+    state.biz = { ...state.biz, loading: true };
+    loadBusinesses(true).finally(() => { state.biz = { ...state.biz, loading: false }; });
+  }
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => selectTab(tab));
+  tab.addEventListener("keydown", (e) => {
+    const map = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 };
+    if (!(e.key in map)) return;
+    e.preventDefault();
+    selectTab(tabs[(map[e.key] + tabs.length) % tabs.length]);
+  });
+});
+
+/* ======================================================== stats/sources */
+async function refreshStats() {
+  const s = await api("/api/stats");
+  const values = {
+    new_leads: s.leads.new,
+    in_progress: s.leads.contacted + s.leads.replied,
+    clients: s.leads.client + s.businesses.client,
+    opportunities: s.businesses.opportunities,
+  };
+  for (const el of document.querySelectorAll("[data-stat]")) countTo(el, values[el.dataset.stat]);
+  setHeroVisual({
+    fixedCount: s.leads.fixed_pay, longCount: s.leads.long_term,
+    goldShare: s.businesses.total ? s.businesses.opportunities / s.businesses.total : heroVisual.goldShare,
+  });
+  $("#count-leads").textContent = nf.format(s.leads.total);
+  $("#count-biz").textContent = nf.format(s.businesses.total);
+}
+
+function sourceState(info, extra) {
+  const st = info.state;
+  const hint = extra ? `· ${extra}` : "";
+  if (!info.configured && !st) return ["off", "не настроен", `· ${extra}`];
+  if (st && st.last_error && !st.last_ok_at) return ["error", `ошибка: ${st.last_error}`, hint];
+  if (st && st.last_run_at) {
+    const partial = st.last_error ? ` · частично: ${st.last_error}` : "";
+    return [st.last_error ? "error" : "ok", `проверено ${timeAgo(st.last_run_at)}${partial}`, hint];
+  }
+  return ["off", "настроен, монитор ещё не запускался", hint];
+}
+
+function renderSources(src) {
+  state.maxScore = src.max_score;
+  const items = [
+    ["Telegram", src.telegram, src.telegram.configured ? "" : "TG_API_ID / TG_API_HASH"],
+    ["Reddit", src.reddit, src.reddit.configured ? src.reddit.subreddits.map((s) => `r/${s}`).join(", ") : "REDDIT_CLIENT_ID / SECRET"],
+    ["RSS", src.rss, src.rss.configured ? `${src.rss.feeds} ${plural(src.rss.feeds, "лента", "ленты", "лент")}` : "RSS_FEEDS"],
+  ];
+  const nodes = items.map(([name, info, extra]) => {
+    const [kind, text, hint] = sourceState(info, extra);
+    const li = document.createElement("li");
+    li.className = "source";
+    li.dataset.state = kind;
+    const dot = document.createElement("span"); dot.className = "dot"; dot.setAttribute("aria-hidden", "true");
+    const b = document.createElement("b"); b.textContent = name;
+    const s = document.createElement("span"); s.className = "source__state"; s.textContent = text;
+    li.append(dot, b, s);
+    if (hint) { const h = document.createElement("span"); h.className = "source__hint"; h.textContent = hint; li.append(h); }
+    return li;
+  });
+  const notify = document.createElement("li");
+  notify.className = "source";
+  notify.dataset.state = src.notifications.configured ? "ok" : "off";
+  const dot = document.createElement("span"); dot.className = "dot"; dot.setAttribute("aria-hidden", "true");
+  notify.append(dot, src.notifications.configured
+    ? `Уведомления в Telegram: от ${src.notifications.min_score} баллов`
+    : "Уведомления в Telegram выключены");
+  $("#sources").replaceChildren(...nodes, notify);
+}
+
+/* ================================================================ cards */
+function setStatus(card, status) {
+  card.dataset.status = status; // drives stripe colour + glyph shape; the select shows the label
+}
+
+function wireCommon(node, item, kind) {
+  node.dataset.id = item.id;
+  node.dataset.kind = kind;
+  setStatus(node, item.status);
+  const select = node.querySelector('[data-act="status"]');
+  select.id = `${kind}-status-${item.id}`;
+  field(node, "status_label").htmlFor = select.id;
+  fillStatusOptions(select, false);
+  select.value = item.status;
+  const note = field(node, "note");
+  note.id = `${kind}-note-${item.id}`;
+  note.value = item.note || "";
+  field(node, "note_label").htmlFor = note.id;
+  const box = field(node, "note_box");
+  box.id = `${kind}-notebox-${item.id}`;
+  const toggle = node.querySelector('[data-act="note-toggle"]');
+  toggle.setAttribute("aria-controls", box.id);
+  if (item.note) { box.hidden = false; toggle.setAttribute("aria-expanded", "true"); toggle.textContent = "Скрыть заметку"; }
+}
+
+const euros = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
+
+function leadTerms(lead) {
+  const budget = lead.budget_eur != null && `≈ ${euros.format(lead.budget_eur)} €`;
+  const labels = [budget, lead.one_off && "Разовый заказ", lead.fixed_pay && "Фикс. оплата", lead.long_term && "Долгосрочно"].filter(Boolean);
+  return labels.map((label) => {
+    const term = document.createElement("span");
+    term.className = "term";
+    term.textContent = label;
+    return term;
+  });
+}
+
+/* A post's first line is its headline; the rest is the body under it. */
+function fillLeadText(node, lead) {
+  const [title, ...rest] = lead.text.split("\n");
+  const body = rest.join("\n").trim();
+  field(node, "title").textContent = title;
+  const text = field(node, "text");
+  if (!body) { text.remove(); return; }
+  text.textContent = body;
+  if (body.length > CLAMP_CHARS || body.split("\n").length > CLAMP_LINES) {
+    text.classList.add("is-clamped");
+    text.id = `lead-text-${lead.id}`;
+    const expand = node.querySelector('[data-act="expand"]');
+    expand.hidden = false;
+    expand.setAttribute("aria-controls", text.id);
+  }
+}
+
+function renderLead(lead) {
+  const node = $("#tpl-lead").content.firstElementChild.cloneNode(true);
+  node.classList.toggle("is-hot", lead.score / state.maxScore >= HOT_SCORE_RATIO);
+  const terms = leadTerms(lead);
+  if (terms.length) field(node, "terms").replaceChildren(...terms); else field(node, "terms").remove();
+  field(node, "source").textContent = SOURCE[lead.source] || lead.source;
+  field(node, "source_name").textContent = lead.source_name;
+  const time = field(node, "time");
+  time.dateTime = lead.posted_at;
+  time.textContent = timeAgo(lead.posted_at);
+  time.title = new Date(lead.posted_at).toLocaleString("ru-RU");
+  time.classList.toggle("is-fresh", Date.now() - Date.parse(lead.posted_at) < FRESH_MS);
+  if (lead.author) field(node, "author").textContent = lead.author; else field(node, "author").remove();
+  field(node, "score").textContent = lead.score;
+  field(node, "score_of").textContent = ` из ${state.maxScore}`;
+  fillLeadText(node, lead);
+  const matched = field(node, "matched");
+  if (lead.matched?.length) {
+    const b = document.createElement("b");
+    b.textContent = lead.matched.join(", ");
+    matched.append("Совпало: ", b);
+  } else matched.remove();
+  const link = field(node, "link");
+  if (isHttp(lead.link)) link.href = lead.link; else link.remove();
+  wireCommon(node, lead, "leads");
+  return node;
+}
+
+function contactItem(label, value, href) {
+  const li = document.createElement("li");
+  const k = document.createElement("span"); k.className = "k"; k.textContent = label;
+  li.append(k);
+  if (href) {
+    const a = document.createElement("a");
+    a.href = href; a.textContent = value;
+    if (isHttp(href)) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+    li.append(a);
+  } else li.append(value);
+  return li;
+}
+
+function renderBusiness(biz) {
+  const node = $("#tpl-biz").content.firstElementChild.cloneNode(true);
+  field(node, "category").textContent = state.categories.get(biz.category) || biz.category;
+  const dist = field(node, "distance");
+  dist.textContent = distance(biz.distance_m);
+  dist.title = "Расстояние от центра города";
+  field(node, "city").textContent = biz.city;
+  field(node, "name").textContent = biz.name;
+  field(node, "flag").hidden = !biz.opportunity;
+  const addr = field(node, "address");
+  if (biz.address) addr.textContent = biz.address; else addr.remove();
+  const contacts = [];
+  if (biz.phone) {
+    const tel = biz.phone.split(/[;,]/)[0].replace(/[^\d+]/g, "");
+    contacts.push(contactItem("Тел.", biz.phone, tel.length >= 5 ? `tel:${tel}` : ""));
+  }
+  if (biz.website) contacts.push(contactItem("Сайт", biz.website.replace(/^https?:\/\//i, "").replace(/\/$/, ""), isHttp(biz.website) ? biz.website : ""));
+  if (biz.messenger) contacts.push(contactItem("Мессенджер", biz.messenger));
+  if (biz.social) contacts.push(contactItem("Соцсеть", biz.social));
+  if (!contacts.length) contacts.push(contactItem("Контакты", "в OSM не указаны"));
+  field(node, "contacts").replaceChildren(...contacts);
+  field(node, "osm").href = `https://www.openstreetmap.org/${encodeURIComponent(biz.osm_type)}/${encodeURIComponent(biz.osm_id)}`;
+  wireCommon(node, biz, "businesses");
+  return node;
+}
+
+/* ============================================================ list events */
+function wireList(list) {
+  list.addEventListener("change", async (e) => {
+    const select = e.target.closest('[data-act="status"]');
+    if (!select) return;
+    const card = select.closest(".card");
+    const previous = card.dataset.status;
+    card.setAttribute("aria-busy", "true");
+    try {
+      const updated = await api(`/api/${card.dataset.kind}/${card.dataset.id}`, { method: "PATCH", body: { status: select.value } });
+      setStatus(card, updated.status);
+      confirmStatus(card, "Сохранено");
+      refreshStats().catch(() => {});
+    } catch (err) {
+      if (err instanceof AuthError) return;
+      select.value = previous;
+      confirmStatus(card, `Не сохранено: ${err.message}`, true);
+    } finally {
+      card.removeAttribute("aria-busy");
+    }
+  });
+
+  list.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-act]");
+    if (!btn || btn.tagName === "SELECT") return;
+    const card = btn.closest(".card");
+    if (btn.dataset.act === "expand") {
+      const expanded = !field(card, "text").classList.toggle("is-clamped");
+      btn.setAttribute("aria-expanded", String(expanded));
+      btn.textContent = expanded ? "Свернуть" : "Показать полностью";
+    } else if (btn.dataset.act === "note-toggle") {
+      const box = field(card, "note_box");
+      box.hidden = !box.hidden;
+      btn.setAttribute("aria-expanded", String(!box.hidden));
+      btn.textContent = box.hidden ? "Заметка" : "Скрыть заметку";
+      if (!box.hidden) {
+        field(card, "note").focus();
+        if (motionOk()) window.gsap.from(box, { opacity: 0, y: -8, duration: 0.36, ease: "expo.out", clearProps: "opacity,transform" });
+      }
+    } else if (btn.dataset.act === "note-save") {
+      await saveNote(card);
+    }
+  });
+
+  list.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && e.target.matches("textarea")) {
+      e.preventDefault();
+      saveNote(e.target.closest(".card"));
+    }
+  });
+}
+
+async function saveNote(card) {
+  const out = field(card, "note_saved");
+  try {
+    await api(`/api/${card.dataset.kind}/${card.dataset.id}`, { method: "PATCH", body: { note: field(card, "note").value } });
+    out.classList.remove("is-error");
+    out.textContent = "Заметка сохранена";
+    setTimeout(() => { out.textContent = ""; }, 2400);
+  } catch (err) {
+    if (err instanceof AuthError) return;
+    out.classList.add("is-error");
+    out.textContent = `Не сохранено: ${err.message}`;
+  }
+}
+
+function emptyState(title, lines) {
+  const li = document.createElement("li");
+  li.className = "empty";
+  const h = document.createElement("h3"); h.textContent = title;
+  li.append(h);
+  for (const line of lines) {
+    const p = document.createElement("p");
+    for (const part of line) {
+      if (typeof part === "string") p.append(part);
+      else { const c = document.createElement("code"); c.textContent = part.code; p.append(c); }
+    }
+    li.append(p);
+  }
+  return li;
+}
+
+function showListError(list, err) {
+  const li = document.createElement("li");
+  li.className = "alert";
+  li.setAttribute("role", "alert");
+  li.textContent = `Не удалось загрузить: ${err.message}`;
+  list.replaceChildren(li);
+}
+
+/* Generic paged loader shared by both lists.
+   - Every request gets a sequence number; a response that is no longer the latest
+     (filters changed meanwhile) is dropped, so stale data never overwrites fresh.
+   - Appended pages skip ids already on screen (new leads shift offsets). */
+function skeletonCards() {
+  return Array.from({ length: SKELETON_CARDS }, () => {
+    const li = document.createElement("li");
+    li.className = "skeleton";
+    li.setAttribute("aria-hidden", "true");
+    return li;
+  });
+}
+
+const listSeq = { leads: 0, biz: 0 };
+async function loadList({ key, list, url, render, onData, emptyNode, resultEl, moreBtn, direction }, reset) {
+  const seq = ++listSeq[key];
+  const offset = reset ? 0 : state[key].offset;
+  list.setAttribute("aria-busy", "true");
+  moreBtn.disabled = true;
+  if (!list.children.length) list.replaceChildren(...skeletonCards());
+  try {
+    const data = await api(url(offset));
+    if (seq !== listSeq[key]) return; // superseded by a newer request
+    const shown = reset ? new Set() : new Set([...list.querySelectorAll(".card")].map((c) => c.dataset.id));
+    const nodes = data.items.filter((item) => !shown.has(String(item.id))).map(render);
+    state[key] = { ...state[key], loaded: true, total: data.total, offset: offset + data.items.length };
+    onData?.(data);
+    const previousTops = reset ? cardTops(list) : new Map();
+    if (reset) list.replaceChildren(...nodes); else list.append(...nodes);
+    if (!data.total) list.replaceChildren(emptyNode());
+    resultEl.textContent = data.total ? `Показано ${nf.format(Math.min(state[key].offset, data.total))} из ${nf.format(data.total)}` : "";
+    moreBtn.hidden = state[key].offset >= data.total;
+    animateListChange(nodes, previousTops, direction?.() ?? 1);
+  } catch (err) {
+    if (seq === listSeq[key] && !(err instanceof AuthError)) showListError(list, err);
+  } finally {
+    if (seq === listSeq[key]) { list.removeAttribute("aria-busy"); moreBtn.disabled = false; }
+  }
+}
+
+/* Mobile: secondary filters sit behind a toggle that shows how many are active. */
+function wireFilterToggle(form) {
+  const toggle = form.querySelector(".filters-toggle");
+  toggle.addEventListener("click", () => {
+    const open = form.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+}
+function showActiveFilterCount(form, count) {
+  const toggle = form.querySelector(".filters-toggle");
+  toggle.querySelector(".n").textContent = count ? ` · ${count}` : "";
+  toggle.setAttribute("aria-label", count ? `Фильтры, активно: ${count}` : "Фильтры");
+}
+
+/* ================================================================ leads */
+const isEuroAmount = (value) => value !== "" && Number.isFinite(Number(value)) && Number(value) >= 0;
+
+function leadQuery(extra = {}) {
+  const f = state.leads.filters;
+  const params = new URLSearchParams({ min_score: f.min_score, sort: f.sort });
+  if (f.q) params.set("q", f.q);
+  if (f.status) params.set("status", f.status);
+  if (f.source) params.set("source", f.source);
+  if (f.one_off) params.set("one_off", "true");
+  if (f.fixed_pay) params.set("fixed_pay", "true");
+  if (f.long_term) params.set("long_term", "true");
+  for (const key of ["min_budget", "max_budget"]) if (isEuroAmount(f[key])) params.set(key, f[key]);
+  for (const [k, v] of Object.entries(extra)) params.set(k, v);
+  return params;
+}
+
+const leadsList = {
+  key: "leads", list: $("#lead-list"), resultEl: $("#lead-result"), moreBtn: $("#lead-more"), render: renderLead,
+  url: (offset) => `/api/leads?${leadQuery({ limit: PAGE, offset })}`,
+  direction: () => (state.leads.filters.sort === "oldest" ? -1 : 1),
+  emptyNode: () => {
+    const f = state.leads.filters;
+    return f.q || f.status || f.source || f.min_score !== "0" || f.one_off || f.fixed_pay || f.long_term
+      || f.min_budget || f.max_budget
+      ? emptyState("Ничего не найдено", [["Снимите часть фильтров. Фильтр по бюджету оставляет только заказы, где указана цена."]])
+      : emptyState("Заказов пока нет", [
+          ["Запустите монитор: ", { code: "python -m leadhub.monitor" }, ". Он читает только источники, настроенные в ", { code: ".env" }, "."],
+        ]);
+  },
+};
+async function loadLeads(reset) {
+  const f = state.leads.filters;
+  if (reset) setLivePending(0); // a fresh list already contains them
+  $("#lead-export").href = `/api/leads/export.csv?${leadQuery()}`;
+  showActiveFilterCount($("#lead-filters"), [f.status, f.source, f.min_score !== "0", f.min_budget || f.max_budget].filter(Boolean).length);
+  await loadList(leadsList, reset);
+}
+
+fillStatusOptions($("#lead-status"), true);
+const onLeadFilter = () => {
+  const form = $("#lead-filters").elements;
+  const filters = {
+    q: $("#lead-q").value.trim(), status: $("#lead-status").value,
+    min_score: $("#lead-min").value, source: $("#lead-source").value,
+    sort: form.sort.value, one_off: form.one_off.checked, fixed_pay: form.fixed_pay.checked, long_term: form.long_term.checked,
+    min_budget: form.min_budget.value.trim(), max_budget: form.max_budget.value.trim(),
+  };
+  state.leads = { ...state.leads, filters };
+  setHeroVisual({ fixed: filters.fixed_pay, long: filters.long_term, oneOff: filters.one_off, sortDir: filters.sort === "oldest" ? -1 : 1 });
+  loadLeads(true);
+};
+$("#lead-filters").addEventListener("input", debounce(onLeadFilter, SEARCH_DEBOUNCE_MS));
+$("#lead-filters").addEventListener("submit", (e) => { e.preventDefault(); onLeadFilter(); });
+$("#lead-more").addEventListener("click", () => loadLeads(false));
+wireFilterToggle($("#lead-filters"));
+wireList($("#lead-list"));
+
+/* ============================================================ live feed */
+/* The monitors keep adding leads while the window is open, so the page asks every LIVE_POLL_MS.
+   At the top of the list with nothing focused inside it, new leads simply appear; otherwise a
+   button offers them, so a card never jumps away under the reader. */
+const LIVE_POLL_MS = 30_000;
+let livePending = 0;
+function setLivePending(count) {
+  livePending = Math.max(0, count);
+  const btn = $("#lead-new");
+  btn.hidden = livePending === 0;
+  btn.textContent = `Новых заказов: ${nf.format(livePending)} — показать`;
+}
+function readerIsBusy() {
+  const list = $("#lead-list");
+  return list.contains(document.activeElement) || list.getBoundingClientRect().top < 0;
+}
+async function pollLeads() {
+  if (document.hidden || $("#app").hidden || !state.leads.loaded) return;
+  try {
+    refreshStats().catch(() => {});
+    const data = await api(`/api/leads?${leadQuery({ limit: 1, offset: 0 })}`);
+    const fresh = data.total - state.leads.total;
+    if (fresh <= 0) return;
+    if (readerIsBusy()) setLivePending(fresh);
+    else await loadLeads(true);
+  } catch { /* offline for a moment or logged out: the next tick tries again */ }
+}
+$("#lead-new").addEventListener("click", async () => {
+  await loadLeads(true);
+  $("#lead-result").scrollIntoView({ block: "start", behavior: reduceMotionMq.matches ? "auto" : "smooth" });
+  $("#lead-list").focus({ preventScroll: true }); // the button that had focus is now hidden
+});
+let livePoll = 0;
+function startLivePolling() {
+  if (livePoll) return;
+  livePoll = setInterval(pollLeads, LIVE_POLL_MS);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) pollLeads(); });
+}
+
+/* =========================================================== businesses */
+function bizQuery(extra = {}) {
+  const f = state.biz.filters;
+  const params = new URLSearchParams();
+  if (f.q) params.set("q", f.q);
+  if (f.status) params.set("status", f.status);
+  if (f.city) params.set("city", f.city);
+  if (f.opportunity_only) params.set("opportunity_only", "true");
+  for (const [k, v] of Object.entries(extra)) params.set(k, v);
+  return params;
+}
+
+function renderCityOptions(cities) {
+  const select = $("#biz-city");
+  const current = state.biz.filters.city;
+  // An active filter must always be visible, even for a city with 0 results.
+  const options = current && !cities.includes(current) ? [...cities, current] : cities;
+  select.replaceChildren(new Option("Все", ""), ...options.map((c) => new Option(c, c)));
+  select.value = current || "";
+}
+
+const bizList = {
+  key: "biz", list: $("#biz-list"), resultEl: $("#biz-result"), moreBtn: $("#biz-more"), render: renderBusiness,
+  url: (offset) => `/api/businesses?${bizQuery({ limit: PAGE, offset })}`,
+  onData: (data) => renderCityOptions(data.cities),
+  emptyNode: () => {
+    const f = state.biz.filters;
+    return f.q || f.status || f.city || f.opportunity_only
+      ? emptyState("Ничего не найдено", [["Снимите часть фильтров."]])
+      : emptyState("Пока пусто", [["Найденные в OpenStreetMap бизнесы сохраняются в этом списке."]]);
+  },
+};
+async function loadBusinesses(reset) {
+  const f = state.biz.filters;
+  const firstLoad = !state.biz.loaded;
+  $("#biz-export").href = `/api/businesses/export.csv?${bizQuery()}`;
+  showActiveFilterCount($("#biz-filters"), [f.status, f.city, f.opportunity_only].filter(Boolean).length);
+  await loadList(bizList, reset);
+  // On phones, once businesses are stored, lead with the list; the finder stays one tap away.
+  if (firstLoad && state.biz.total > 0 && matchMedia("(max-width: 767px)").matches) $("#finder-box").open = false;
+}
+
+fillStatusOptions($("#biz-status"), true);
+const onBizFilter = () => {
+  state.biz = { ...state.biz, filters: {
+    q: $("#biz-q").value.trim(), status: $("#biz-status").value,
+    city: $("#biz-city").value, opportunity_only: $("#biz-opp").checked,
+  } };
+  loadBusinesses(true);
+};
+$("#biz-filters").addEventListener("input", debounce(onBizFilter, SEARCH_DEBOUNCE_MS));
+$("#biz-filters").addEventListener("submit", (e) => { e.preventDefault(); onBizFilter(); });
+$("#biz-more").addEventListener("click", () => loadBusinesses(false));
+wireFilterToggle($("#biz-filters"));
+wireList($("#biz-list"));
+
+/* =============================================================== finder */
+function renderFinder(meta) {
+  const saved = storage.get("leadhub-finder") || {};
+  state.categories = new Map(meta.categories.map((c) => [c.key, c.label]));
+  $("#city").value = saved.city || DEFAULT_CITY;
+  const radius = meta.radii.includes(saved.radius_km) ? saved.radius_km : 3;
+  $("#radius").replaceChildren(...meta.radii.map((r) => {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "radio"; input.name = "radius_km"; input.value = String(r); input.checked = r === radius;
+    label.append(input, String(r));
+    return label;
+  }));
+  const chosen = new Set(saved.categories || meta.categories.filter((c) => c.default).map((c) => c.key));
+  $("#categories").replaceChildren(...meta.categories.map((c) => {
+    const label = document.createElement("label");
+    label.className = "chip";
+    const input = document.createElement("input");
+    input.type = "checkbox"; input.name = "categories"; input.value = c.key; input.checked = chosen.has(c.key);
+    label.append(input, c.label);
+    return label;
+  }));
+}
+
+function bold(n) { const b = document.createElement("b"); b.textContent = nf.format(n); return b; }
+
+$("#finder").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const status = $("#finder-status");
+  const submit = $("#finder-submit");
+  const city = $("#city").value.trim();
+  const radius_km = Number(new FormData(e.target).get("radius_km"));
+  const categories = [...document.querySelectorAll("#categories input:checked")].map((i) => i.value);
+  status.classList.remove("is-error");
+  if (city.length < 2) { status.classList.add("is-error"); status.textContent = "Введите название города."; $("#city").focus(); return; }
+  if (!categories.length) { status.classList.add("is-error"); status.textContent = "Выберите хотя бы одну категорию."; return; }
+  storage.set("leadhub-finder", { city, radius_km, categories });
+  submit.disabled = true;
+  $("#finder").setAttribute("aria-busy", "true");
+  status.textContent = "Ищем в OpenStreetMap. Общие серверы бывают заняты, это может занять пару минут.";
+  try {
+    const r = await api("/api/osm/search", { method: "POST", body: { city, radius_km, categories } });
+    status.replaceChildren(
+      "Найдено ", bold(r.found), ", новых ", bold(r.new), ", без сайта и мессенджера ", bold(r.opportunities),
+      `. ${r.center.label}.`, r.truncated ? " Показаны не все, уменьшите радиус." : "",
+    );
+    state.biz = { ...state.biz, filters: { ...state.biz.filters, city: r.city } };
+    await loadBusinesses(true);
+    refreshStats().catch(() => {});
+  } catch (err) {
+    if (err instanceof AuthError) return;
+    status.classList.add("is-error");
+    status.textContent = err.message;
+  } finally {
+    submit.disabled = false;
+    $("#finder").removeAttribute("aria-busy");
+  }
+});
+
+/* ================================================================= boot */
+/* All first-screen data is requested in parallel (no separate session round
+   trip); a 401 from any of them shows the login screen. Without the server's
+   non-secret hint cookie we know we're logged out and skip the requests. */
+async function showApp() {
+  const sourcesReq = api("/api/sources");
+  const metaReq = api("/api/osm/categories");
+  const statsReq = refreshStats().catch(() => {});
+  const leadsReq = loadLeads(true);
+  try {
+    const [sources, meta] = await Promise.all([sourcesReq, metaReq]);
+    renderSources(sources);
+    renderFinder(meta);
+  } catch (err) {
+    if (err instanceof AuthError) return;
+    $("#lead-result").textContent = `Ошибка: ${err.message}`;
+  }
+  await leaveLogin();
+  $("#login").hidden = true;
+  unmountLux("login-art"); // free the login stage's WebGL context
+  $("#app").hidden = false;
+  playHeroIntro();
+  if (location.hash === "#biz") selectTab($("#tab-biz"), false);
+  moveTabInk();
+  await Promise.allSettled([statsReq, leadsReq]);
+  startLivePolling();
+  scheduleLux("hero-art", "hero-canvas", { scale: 0.8, rich: true }); // only after the real data is on screen
+}
+
+
+/* ============================================================ 3D scene */
+/* A faceted black gem inside gold gyroscope rings, lit by a procedural studio
+   environment so the metal has real reflections. Mounted on the login stage
+   or in the header, never behind the data lists.
+   Lazy: three.js is imported on idle after the first screen has rendered.
+   Skipped (the static SVG composition stays) on reduced motion, no WebGL or
+   Save-Data. Paused while the tab is hidden or the stage is off screen. */
+function webglAvailable() {
+  try {
+    const c = document.createElement("canvas");
+    return Boolean(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+  } catch { return false; }
+}
+
+const luxMounts = new Map(); // host id → controller (null while loading)
+const LOW_MEMORY_GB = 4;
+const HERO_SCROLL_PX = 600;
+const STAGE_SHIFT = 0.08;
+const BALANCE_SCALE = 1.15;
+const BALANCE_SWAY = 0.2;
+const BEAM_DATA_TILT = 0.07;
+const BEAM_FILTER_TILT = 0.2;
+const GLINT_SPEED = 0.35;
+const STILL_STEP_S = 1 / 30;
+const STILL_SETTLE_STEPS = 240; // simulated seconds for the models to reach their resting pose
+function isLowEndDevice() {
+  return navigator.deviceMemory !== undefined && navigator.deviceMemory < LOW_MEMORY_GB;
+}
+
+function scheduleLux(hostId, canvasId, options = {}) {
+  // Low-memory devices (often GPU-less) keep the static composition: the PBR scene is real work there.
+  // Reduced motion does not skip the model: createLuxScene then draws it as one motionless frame.
+  if (luxMounts.has(hostId) || isLowEndDevice() || navigator.connection?.saveData || !webglAvailable()) return;
+  luxMounts.set(hostId, null);
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 900));
+  idle(() => {
+    createLuxScene($(`#${hostId}`), $(`#${canvasId}`), options)
+      .then((ctl) => {
+        if (!luxMounts.has(hostId)) { ctl.teardown(true); return; }
+        luxMounts.set(hostId, ctl);
+        if (hostId === "hero-art") window.__leadhub3d = ctl; // read-only test hook
+      })
+      .catch((err) => { luxMounts.delete(hostId); console.warn("Lead Hub: 3D scene failed, keeping the static image", err); });
+  }, { timeout: 2500 });
+}
+function unmountLux(hostId) {
+  const ctl = luxMounts.get(hostId);
+  luxMounts.delete(hostId);
+  ctl?.teardown(true);
+}
+
+function mulberry32(seed) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* Procedural jeweller's studio: bright narrow strips on black. Polished metal looks polished
+   because it mirrors hard contrast, so the dark between the strips matters as much as the light. */
+function buildStudio(THREE) {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  const geo = new THREE.PlaneGeometry(1, 1);
+  const mats = [];
+  const softbox = (w, h, intensity, tint, pos) => {
+    const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(tint).multiplyScalar(intensity), side: THREE.DoubleSide });
+    mats.push(mat);
+    const m = new THREE.Mesh(geo, mat);
+    m.scale.set(w, h, 1); m.position.set(...pos); m.lookAt(0, 0, 0);
+    scene.add(m);
+  };
+  softbox(7, 1.1, 16, 0xfff4dc, [0, 6, 3]);     // overhead strip
+  softbox(1.1, 10, 12, 0xffe6bb, [-7, 0, 3]);   // left strip
+  softbox(0.7, 10, 22, 0xffffff, [7, 1, 0]);    // hard right strip: the brightest glints
+  softbox(10, 0.5, 9, 0xffffff, [0, -1, -7]);   // back rim
+  softbox(5, 0.5, 7, 0xffd98a, [0, -6, 2]);     // low warm bounce
+  return { scene, dispose: () => { geo.dispose(); mats.forEach((m) => m.dispose()); } };
+}
+
+/* ---- hero model kit --------------------------------------------------
+   The hero is one working object, a jeweller's balance that reports the data:
+   the left pan holds as many coins as there are fixed-pay orders, the right pan
+   carries an hourglass for long-term ones, and the beam tips towards whichever
+   filter is on. The gold city is the businesses tab, gilded by the real share of
+   places with no website. Models return { object, tick(...), dispose }. */
+const MAX_COINS = 10;
+const lathe = (THREE, points, segments) => new THREE.LatheGeometry(points.map(([r, h]) => new THREE.Vector2(r, h)), segments);
+
+function buildCoinStack(THREE, gold, segments) {
+  const coinGeo = lathe(THREE, [[0, -0.075], [0.5, -0.075], [0.6, -0.04], [0.6, 0.04], [0.5, 0.075], [0, 0.075]], segments);
+  const rimGeo = new THREE.TorusGeometry(0.42, 0.016, 8, segments);
+  const stack = new THREE.InstancedMesh(coinGeo, gold, MAX_COINS);
+  stack.frustumCulled = false; // the visible count changes with the data
+  const rand = mulberry32(42), place = new THREE.Object3D();
+  for (let i = 0; i < MAX_COINS; i++) {
+    place.position.set((rand() - 0.5) * 0.09, 0.075 + i * 0.15, (rand() - 0.5) * 0.09);
+    place.rotation.y = rand() * Math.PI;
+    place.updateMatrix();
+    stack.setMatrixAt(i, place.matrix);
+  }
+
+  const object = new THREE.Group();
+  object.add(stack);
+  return {
+    object, coinGeo, rimGeo,
+    setCoins(count) { stack.count = count; },
+    dispose() { coinGeo.dispose(); rimGeo.dispose(); stack.dispose(); },
+  };
+}
+
+/* The "one-off" filter: a single coin spun on its edge on the base. */
+function buildSpinningCoin(THREE, gold, coinGeo, rimGeo) {
+  const object = new THREE.Group();
+  const face = new THREE.Mesh(coinGeo, gold);
+  face.rotation.x = Math.PI / 2;
+  object.add(face);
+  for (const side of [-1, 1]) {
+    const rim = new THREE.Mesh(rimGeo, gold);
+    rim.position.z = 0.08 * side;
+    object.add(rim);
+  }
+  return {
+    object,
+    tick(dt, t, energy) {
+      object.visible = energy > 0.01;
+      object.scale.setScalar(energy * 0.7);
+      object.rotation.y += dt * 9;
+      object.rotation.z = Math.sin(t * 4.5) * 0.12; // the wobble of a coin on its edge
+    },
+  };
+}
+
+/* Three fine chains from the end of the beam down to the rim of a pan. */
+function buildChains(THREE, gold, geometry, drop, radius) {
+  const chains = new THREE.InstancedMesh(geometry, gold, 3);
+  const down = new THREE.Vector3(0, -1, 0), direction = new THREE.Vector3();
+  const pose = new THREE.Matrix4(), turn = new THREE.Quaternion(), length = new THREE.Vector3();
+  for (let i = 0; i < 3; i++) {
+    const angle = (i / 3) * Math.PI * 2 + Math.PI / 6;
+    direction.set(Math.cos(angle) * radius, -drop, Math.sin(angle) * radius);
+    length.set(1, direction.length(), 1);
+    turn.setFromUnitVectors(down, direction.normalize());
+    chains.setMatrixAt(i, pose.compose(new THREE.Vector3(), turn, length));
+  }
+  chains.frustumCulled = false; // a thin unit cylinder has a misleading bounding sphere
+  return chains;
+}
+
+function buildBalance(THREE, gold, segments) {
+  const BEAM_Y = 1.8, ARM = 3.5, DROP = 2.5, PAN_RADIUS = 1.05, PAN_FLOOR = -0.13, BASE_TOP = -2.55;
+  const STIFFNESS = 9, DAMPING = 1.6, COIN_SCALE = 0.8, GLASS_SCALE = 0.6, GLASS_HALF_HEIGHT = 1.06;
+
+  // a single turned column: stepped foot, flat base, baluster, collars
+  const standGeo = lathe(THREE, [[0, -2.9], [1.75, -2.9], [1.8, -2.84], [1.62, -2.76], [1.5, -2.55], [0.7, -2.55], [0.5, -2.4], [0.24, -2.15], [0.14, -1.85], [0.12, -0.25], [0.21, -0.14], [0.21, -0.02], [0.11, 0.1], [0.09, 1.48], [0.17, 1.6], [0.17, 1.68], [0, 1.7]], segments);
+  const hubGeo = new THREE.SphereGeometry(0.17, 24, 16);
+  const armGeo = new THREE.CylinderGeometry(0.03, 0.085, ARM, 12);
+  const rightArmGeo = armGeo.clone().rotateZ(-Math.PI / 2).translate(ARM / 2, 0, 0);
+  const leftArmGeo = armGeo.clone().rotateZ(Math.PI / 2).translate(-ARM / 2, 0, 0);
+  armGeo.dispose();
+  const knobGeo = new THREE.SphereGeometry(0.08, 16, 12);
+  const needleGeo = new THREE.ConeGeometry(0.03, 0.72, 8).translate(0, 0.36, 0);
+  const dialGeo = new THREE.TorusGeometry(0.8, 0.012, 6, 32, 1).rotateZ(Math.PI / 2 - 0.5); // the scale the needle reads against
+  const gemGeo = new THREE.IcosahedronGeometry(0.2, 0);
+  const gemMat = new THREE.MeshPhysicalMaterial({ color: 0x020202, metalness: 0.4, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.06, flatShading: true });
+  const gemEdgeGeo = new THREE.EdgesGeometry(gemGeo);
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xd6b676, transparent: true, opacity: 0.7 });
+  const chainGeo = new THREE.CylinderGeometry(0.012, 0.012, 1, 5).translate(0, -0.5, 0);
+  const panGeo = lathe(THREE, [[0, -0.2], [0.6, -0.19], [1.0, -0.08], [PAN_RADIUS, 0], [1.0, -0.02], [0.6, -0.12], [0, -0.13]], segments);
+
+  const beam = new THREE.Group();
+  beam.position.y = BEAM_Y;
+  for (const part of [hubGeo, leftArmGeo, rightArmGeo, needleGeo]) beam.add(new THREE.Mesh(part, gold));
+  for (const side of [-1, 1]) {
+    const knob = new THREE.Mesh(knobGeo, gold);
+    knob.position.x = side * ARM;
+    beam.add(knob);
+  }
+
+  const makePan = () => {
+    const hanger = new THREE.Group();
+    const pan = new THREE.Mesh(panGeo, gold);
+    pan.position.y = -DROP;
+    const load = new THREE.Group();
+    load.position.y = -DROP + PAN_FLOOR;
+    const chains = buildChains(THREE, gold, chainGeo, DROP, PAN_RADIUS);
+    hanger.add(chains, pan, load);
+    return { hanger, load, chains };
+  };
+  const left = makePan(), right = makePan();
+  const coins = buildCoinStack(THREE, gold, segments);
+  coins.object.scale.setScalar(COIN_SCALE);
+  left.load.add(coins.object);
+  const glass = buildHourglass(THREE, gold, segments);
+  glass.object.scale.setScalar(GLASS_SCALE);
+  glass.object.position.y = GLASS_HALF_HEIGHT * GLASS_SCALE;
+  right.load.add(glass.object);
+  const spinner = buildSpinningCoin(THREE, gold, coins.coinGeo, coins.rimGeo);
+  spinner.object.position.set(0.95, BASE_TOP + 0.42, 0.75); // off to the side, so the column never hides it
+
+  const dial = new THREE.Mesh(dialGeo, gold);
+  dial.position.y = BEAM_Y;
+  const gem = new THREE.Mesh(gemGeo, gemMat);
+  gem.add(new THREE.LineSegments(gemEdgeGeo, edgeMat));
+  gem.position.y = BEAM_Y + 1.02;
+
+  const object = new THREE.Group();
+  object.add(new THREE.Mesh(standGeo, gold), beam, dial, gem, left.hanger, right.hanger, spinner.object);
+
+  let angle = 0, velocity = 0;
+  return {
+    object, edgeMat,
+    /* `tilt` is the beam angle to settle at; positive lowers the hourglass side. */
+    tick(dt, t, { tilt, coinCount, longEnergy, oneOffEnergy, timeDir }) {
+      velocity += ((tilt - angle) * STIFFNESS - velocity * DAMPING) * dt;
+      angle += velocity * dt;
+      beam.rotation.z = -angle;
+      const swing = THREE.MathUtils.clamp(velocity * 0.18, -0.2, 0.2) + Math.sin(t * 0.7) * 0.012; // pans lag the beam
+      const reach = Math.cos(angle) * ARM, rise = Math.sin(angle) * ARM;
+      left.hanger.position.set(-reach, BEAM_Y + rise, 0);
+      right.hanger.position.set(reach, BEAM_Y - rise, 0);
+      left.hanger.rotation.z = right.hanger.rotation.z = swing;
+      gem.rotation.y += dt * 0.5;
+      coins.setCoins(coinCount);
+      glass.tick(dt, t, longEnergy, timeDir);
+      spinner.tick(dt, t, oneOffEnergy);
+    },
+    dispose() {
+      [standGeo, hubGeo, leftArmGeo, rightArmGeo, knobGeo, needleGeo, dialGeo, gemGeo, gemEdgeGeo, chainGeo, panGeo].forEach((g) => g.dispose());
+      [gemMat, edgeMat].forEach((m) => m.dispose());
+      left.chains.dispose();
+      right.chains.dispose();
+      coins.dispose();
+      glass.dispose();
+    },
+  };
+}
+
+function buildHourglass(THREE, gold, segments) {
+  const CYCLE_S = 14, FLOW_END = 0.9;
+  const half = [[0.07, 0], [0.16, 0.1], [0.42, 0.42], [0.52, 0.72], [0.5, 0.96]];
+  const outline = [...half.slice(1).reverse().map(([r, h]) => [r, -h]), ...half].map(([r, h]) => new THREE.Vector2(r, h));
+  const glassGeo = new THREE.LatheGeometry(outline, segments);
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xfff2d8, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.11, side: THREE.DoubleSide, depthWrite: false });
+  const capGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.08, segments);
+  const pillarGeo = new THREE.CylinderGeometry(0.024, 0.024, 2.04, 10);
+  const cone = new THREE.ConeGeometry(0.36, 0.36, segments);
+  const topSandGeo = cone.clone().rotateX(Math.PI).translate(0, 0.18, 0); // apex at the neck, so it drains towards it
+  const pileGeo = cone.clone().translate(0, 0.18, 0);                     // base on the floor, so it grows upward
+  cone.dispose();
+  const streamGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.96, 6);
+
+  const body = new THREE.Group();
+  body.add(new THREE.Mesh(glassGeo, glassMat));
+  for (const side of [-1, 1]) {
+    const cap = new THREE.Mesh(capGeo, gold);
+    cap.position.y = 1.02 * side;
+    body.add(cap);
+  }
+  for (let i = 0; i < 3; i++) {
+    const pillar = new THREE.Mesh(pillarGeo, gold);
+    const angle = (i / 3) * Math.PI * 2 + 0.5;
+    pillar.position.set(Math.cos(angle) * 0.58, 0, Math.sin(angle) * 0.58);
+    body.add(pillar);
+  }
+  const topSand = new THREE.Mesh(topSandGeo, gold);
+  topSand.position.y = 0.12;
+  const pile = new THREE.Mesh(pileGeo, gold);
+  pile.position.y = -0.96;
+  const stream = new THREE.Mesh(streamGeo, gold);
+  stream.position.y = -0.48;
+  body.add(topSand, pile, stream);
+
+  const object = new THREE.Group();
+  object.add(body);
+  let clock = 0;
+  return {
+    object,
+    tick(dt, t, energy, timeDir = 1) {
+      clock += dt * (1 + energy * 2.4) * timeDir; // "oldest first" runs the sand backwards
+      const phase = (((clock % CYCLE_S) + CYCLE_S) % CYCLE_S) / CYCLE_S;
+      const flow = Math.min(phase / FLOW_END, 1);
+      // A full somersault resets the sand while it spins, so the loop has no visible seam.
+      const turn = phase > FLOW_END ? THREE.MathUtils.smoothstep((phase - FLOW_END) / (1 - FLOW_END), 0, 1) : 0;
+      const emptied = Math.max(0, 1 - turn * 2), refilled = Math.max(0, turn * 2 - 1);
+      topSand.scale.setScalar(Math.max(Math.cbrt(1 - flow), refilled) || 0.001);
+      pile.scale.setScalar(Math.cbrt(flow) * emptied || 0.001);
+      stream.visible = flow < 1;
+      body.rotation.z = Math.PI * 2 * turn;
+      object.rotation.y = t * (0.25 + energy * 0.5);
+    },
+    dispose() { [glassGeo, capGeo, pillarGeo, topSandGeo, pileGeo, streamGeo].forEach((g) => g.dispose()); glassMat.dispose(); },
+  };
+}
+
+const CITY_CENTER_HEIGHT = 1.05;
+function cityCells(radius, step, rand) {
+  const cells = [];
+  for (let x = -radius; x <= radius; x += step) {
+    for (let z = -radius; z <= radius; z += step) {
+      const dist = Math.hypot(x, z);
+      if (dist < step / 2) { cells.push({ x, z, height: CITY_CENTER_HEIGHT, goldRank: 0, delay: 0 }); continue; } // the pin's building
+      if (dist >= radius || rand() < 0.14) continue;
+      const falloff = 1 - (dist / radius) * 0.7;
+      cells.push({ x, z, height: (0.22 + rand() * rand() * 1.7) * falloff, goldRank: rand(), delay: (dist / radius) * 0.55 });
+    }
+  }
+  return cells;
+}
+
+function buildCity(THREE, gold, segments) {
+  const RADIUS = 2.5, PLATE = RADIUS + 0.35;
+  const cells = cityCells(RADIUS, 0.5, mulberry32(20261109));
+  const boxGeo = new THREE.BoxGeometry(0.38, 1, 0.38).translate(0, 0.5, 0); // scales up from the ground
+  // Low metalness: the warm graphite towers are shaped by the key light, not lost in dark reflections.
+  const towerMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.3, roughness: 0.42 });
+  const towers = new THREE.InstancedMesh(boxGeo, towerMat, cells.length);
+  towers.frustumCulled = false; // instance heights animate; the whole city is always in frame
+  const dark = new THREE.Color(0x4f4b45), lit = new THREE.Color().setRGB(0.92, 0.52, 0.1); // deeper than pure gold: these towers are diffuse-lit
+  let shownShare = -1;
+  const gild = (share) => { // a tower is gold when its rank falls inside the real share of places with no website
+    cells.forEach((cell, i) => towers.setColorAt(i, cell.goldRank < share ? lit : dark));
+    towers.instanceColor.needsUpdate = true;
+    shownShare = share;
+  };
+  gild(0.2);
+
+  // streets run between the rows of towers, so the plate reads as a map
+  const streetPoints = [];
+  const STREET_STEP = 0.5, STREET_Y = 0.004;
+  for (let offset = -RADIUS - STREET_STEP / 2; offset <= RADIUS + STREET_STEP / 2; offset += STREET_STEP) {
+    const span = Math.sqrt(Math.max(PLATE * PLATE - offset * offset, 0)) * 0.97;
+    streetPoints.push(new THREE.Vector3(offset, STREET_Y, -span), new THREE.Vector3(offset, STREET_Y, span));
+    streetPoints.push(new THREE.Vector3(-span, STREET_Y, offset), new THREE.Vector3(span, STREET_Y, offset));
+  }
+  const streetGeo = new THREE.BufferGeometry().setFromPoints(streetPoints);
+  const streetMat = new THREE.LineBasicMaterial({ color: 0xd6b676, transparent: true, opacity: 0.32 });
+  const streets = new THREE.LineSegments(streetGeo, streetMat);
+
+  const plateGeo = new THREE.CylinderGeometry(PLATE, PLATE, 0.07, segments * 2).translate(0, -0.035, 0);
+  const plateMat = new THREE.MeshStandardMaterial({ color: 0x050505, metalness: 0, roughness: 0.75 }); // matte, or the bright studio strips wash it grey
+  const rimGeo = new THREE.TorusGeometry(PLATE, 0.02, 8, segments * 2);
+  const rim = new THREE.Mesh(rimGeo, gold);
+  rim.rotation.x = Math.PI / 2;
+
+  const pinHeadGeo = new THREE.SphereGeometry(0.2, 24, 16);
+  const pinTipGeo = new THREE.ConeGeometry(0.19, 0.44, 24).rotateX(Math.PI).translate(0, -0.26, 0);
+  const pin = new THREE.Group();
+  pin.add(new THREE.Mesh(pinHeadGeo, gold), new THREE.Mesh(pinTipGeo, gold));
+
+  const pulseGeo = new THREE.RingGeometry(0.96, 1, segments * 2).rotateX(-Math.PI / 2);
+  const pulseMat = new THREE.MeshBasicMaterial({ color: 0xd6b676, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  const pulses = [0, 0.5].map((offset) => {
+    const mesh = new THREE.Mesh(pulseGeo, pulseMat.clone());
+    mesh.position.y = 0.02;
+    return { mesh, offset };
+  });
+
+  const table = new THREE.Group();
+  table.add(new THREE.Mesh(plateGeo, plateMat), streets, rim, towers, pin, ...pulses.map((p) => p.mesh));
+  const object = new THREE.Group();
+  object.add(table);
+  object.rotation.x = 0.46; // low enough to read the towers' sides
+
+  const place = new THREE.Object3D();
+  let shownRise = -1;
+  const raise = (rise) => {
+    cells.forEach((cell, i) => {
+      const k = THREE.MathUtils.smoothstep((rise - cell.delay) / (1 - cell.delay), 0, 1);
+      place.position.set(cell.x, 0, cell.z);
+      place.scale.set(1, Math.max(0.001, cell.height * k), 1);
+      place.updateMatrix();
+      towers.setMatrixAt(i, place.matrix);
+    });
+    towers.instanceMatrix.needsUpdate = true;
+    shownRise = rise;
+  };
+
+  return {
+    object,
+    decoMaterials: [streetMat, ...pulses.map((p) => p.mesh.material)],
+    tick(dt, t, appear, goldShare) {
+      if (Math.abs(goldShare - shownShare) > 0.001) gild(goldShare);
+      object.scale.setScalar(0.7 + 0.3 * appear);
+      table.rotation.y += dt * 0.1;
+      if (Math.abs(appear - shownRise) > 0.001) raise(appear);
+      pin.position.y = CITY_CENTER_HEIGHT + 0.62 + Math.sin(t * 1.6) * 0.08;
+      for (const { mesh, offset } of pulses) {
+        const life = (t * 0.28 + offset) % 1;
+        mesh.scale.setScalar(0.4 + life * (PLATE - 0.4));
+        mesh.material.opacity = (1 - life) * 0.55 * appear;
+      }
+    },
+    dispose() {
+      [boxGeo, plateGeo, rimGeo, pinHeadGeo, pinTipGeo, pulseGeo, streetGeo].forEach((g) => g.dispose());
+      [towerMat, plateMat, pulseMat, streetMat, ...pulses.map((p) => p.mesh.material)].forEach((m) => m.dispose());
+      towers.dispose();
+    },
+  };
+}
+
+function buildHeroModels(THREE, gold, mobile) {
+  const segments = mobile ? 24 : 48;
+  const balance = buildBalance(THREE, gold, segments);
+  const city = buildCity(THREE, gold, segments);
+  return { balance, city, dispose() { balance.dispose(); city.dispose(); } };
+}
+
+/* The login stage's piece: a black gem in gold gyroscope rings. */
+function buildGyroscope(THREE, gold, mobile) {
+  const object = new THREE.Group();
+  const gemGeo = new THREE.IcosahedronGeometry(1.25, 0);
+  const gemMat = new THREE.MeshPhysicalMaterial({ color: 0x020202, metalness: 0.4, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.06, flatShading: true });
+  const gem = new THREE.Mesh(gemGeo, gemMat);
+  const edgeGeo = new THREE.EdgesGeometry(gemGeo);
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xd6b676, transparent: true, opacity: 0.55 });
+  gem.add(new THREE.LineSegments(edgeGeo, edgeMat));
+  object.add(gem);
+
+  const satGeo = new THREE.SphereGeometry(1, 24, 16);
+  const ringGeos = [];
+  const rings = [
+    { r: 2.15, t: 0.075, tilt: [1.2, 0.3, 0], speed: 0.22, sat: 0.13 },
+    { r: 2.75, t: 0.045, tilt: [-0.5, 0.9, 0.4], speed: -0.15, sat: 0.1 },
+    { r: 3.35, t: 0.028, tilt: [0.25, -0.6, 1.1], speed: 0.09, sat: 0.08 },
+  ].map((spec) => {
+    const pivot = new THREE.Group();
+    pivot.rotation.set(...spec.tilt);
+    const geo = new THREE.TorusGeometry(spec.r, spec.t, 16, mobile ? 128 : 180);
+    ringGeos.push(geo);
+    const ring = new THREE.Mesh(geo, gold);
+    const sat = new THREE.Mesh(satGeo, gold);
+    sat.scale.setScalar(spec.sat);
+    sat.position.x = spec.r;
+    ring.add(sat);
+    pivot.add(ring);
+    object.add(pivot);
+    return { ring, speed: spec.speed };
+  });
+
+  return {
+    object, edgeMat,
+    tick(dt) {
+      gem.rotation.x += dt * 0.18;
+      gem.rotation.y -= dt * 0.1;
+      for (const { ring, speed } of rings) ring.rotation.z += dt * speed;
+    },
+    dispose() {
+      [gemGeo, edgeGeo, satGeo, ...ringGeos].forEach((g) => g.dispose());
+      [gemMat, edgeMat].forEach((m) => m.dispose());
+    },
+  };
+}
+
+async function createLuxScene(host, canvas, { scale = 1, x = 0, y = 0, rich = false } = {}) {
+  const THREE = await import("/static/vendor/three.module.min.js");
+  const mobile = innerWidth < 768;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.25 : 1.5));
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.NeutralToneMapping; // ACES washes saturated gold towards pale yellow
+  renderer.toneMappingExposure = 1;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const studio = buildStudio(THREE);
+  const envTarget = pmrem.fromScene(studio.scene, 0.008); // nearly unblurred: crisp reflections
+  scene.environment = envTarget.texture;
+  studio.dispose();
+  pmrem.dispose();
+
+  const camera = new THREE.PerspectiveCamera(30, 2, 0.1, 100);
+  camera.position.set(0, 0, 12);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.15));
+  const key = new THREE.DirectionalLight(0xfff1d6, 2.2); key.position.set(4, 5, 6);
+  const rim = new THREE.DirectionalLight(0xd6b676, 1.6); rim.position.set(-6, 1, -5);
+  scene.add(key, rim);
+
+  const rig = new THREE.Group();   // placement + pointer parallax
+  const spin = new THREE.Group();  // idle motion
+  rig.add(spin);
+  scene.add(rig);
+
+  const goldMat = new THREE.MeshStandardMaterial({ color: new THREE.Color().setRGB(1, 0.71, 0.27), metalness: 1, roughness: 0.09 }); // measured reflectance of gold
+  const gyro = rich ? null : buildGyroscope(THREE, goldMat, mobile);
+  const models = rich ? buildHeroModels(THREE, goldMat, mobile) : null;
+  if (gyro) spin.add(gyro.object);
+  if (models) {
+    models.balance.object.scale.setScalar(BALANCE_SCALE);
+    spin.add(models.balance.object);
+    rig.add(models.city.object);
+  }
+  const anim = { mode: 0, fixed: 0, long: 0, oneOff: 0, dir: 1 };
+
+  const coinsFor = (orders) => THREE.MathUtils.clamp(Math.round(Math.log2(orders + 1) * 1.5), 3, MAX_COINS);
+  /* Real weight first: more long-term than fixed-pay orders tips the beam that way; a filter tips it further. */
+  const beamTarget = () => {
+    const { fixedCount, longCount } = heroVisual;
+    const dataBias = fixedCount + longCount ? ((longCount - fixedCount) / (fixedCount + longCount)) * BEAM_DATA_TILT : 0;
+    return dataBias + (anim.long - anim.fixed) * BEAM_FILTER_TILT;
+  };
+
+  /* Eases toward heroVisual and returns how present the leads model (the balance) is. */
+  const updateHeroModels = (dt, t) => {
+    const { damp, smoothstep } = THREE.MathUtils;
+    anim.mode = damp(anim.mode, heroVisual.mode === "biz" ? 1 : 0, 3.4, dt);
+    anim.fixed = damp(anim.fixed, heroVisual.fixed ? 1 : 0, 6, dt);
+    anim.long = damp(anim.long, heroVisual.long ? 1 : 0, 6, dt);
+    anim.oneOff = damp(anim.oneOff, heroVisual.oneOff ? 1 : 0, 6, dt);
+    anim.dir = damp(anim.dir, heroVisual.sortDir, 3, dt);
+    const leadsK = smoothstep(1 - anim.mode, 0.45, 1); // sequential: one model leaves before the other arrives
+    const bizK = smoothstep(anim.mode, 0.45, 1);
+    const { balance, city } = models;
+    spin.visible = leadsK > 0.01;
+    if (spin.visible) {
+      balance.tick(dt, t, {
+        tilt: beamTarget(), coinCount: coinsFor(heroVisual.fixedCount),
+        longEnergy: anim.long, oneOffEnergy: anim.oneOff, timeDir: anim.dir,
+      });
+    }
+    city.object.visible = bizK > 0.01;
+    if (city.object.visible) city.tick(dt, t, bizK, heroVisual.goldShare);
+    const scrolled = Math.min(scrollY / HERO_SCROLL_PX, 1);
+    spin.rotation.x = scrolled * 0.25;
+    rig.position.y = y + scrolled * 0.55;
+    return leadsK;
+  };
+
+  const applyColors = () => {
+    const deco = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--gold-deco").trim() || "#C9A45C");
+    [gyro?.edgeMat, models?.balance.edgeMat, ...(models?.city.decoMaterials ?? [])].forEach((m) => m?.color.copy(deco));
+    if (!running) renderer.render(scene, camera);
+  };
+  const resize = () => {
+    const { clientWidth: w, clientHeight: h } = host;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const halfWidth = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
+    rig.scale.setScalar(scale * Math.max(0.55, Math.min(1, halfWidth / 3.9))); // keep the rings inside narrow stages
+    rig.position.set(x, y, 0);
+    if (models && innerWidth >= 768) rig.position.x = x + halfWidth * STAGE_SHIFT; // clear of the wordmark on wide stages
+    if (shown && !running) renderer.render(scene, camera); // resizing clears the canvas and no loop will redraw it
+  };
+
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  const onPointer = (e) => { pointer.tx = (e.clientX / innerWidth - 0.5) * 2; pointer.ty = (e.clientY / innerHeight - 0.5) * 2; };
+  const finePointer = matchMedia("(pointer: fine)").matches;
+  if (finePointer) addEventListener("pointermove", onPointer, { passive: true });
+
+  let running = false, inView = true, last = 0, elapsed = 0, shown = false, disposed = false;
+  const advance = (dt) => {
+    elapsed += dt;
+    const intro = 1 - Math.pow(1 - Math.min(elapsed / 1.8, 1), 3); // ease-out entrance
+    const leadsPresence = models ? updateHeroModels(dt, elapsed) : 1;
+    spin.scale.setScalar((0.84 + 0.16 * intro) * leadsPresence);
+    if (gyro) {
+      spin.rotation.y += dt * 0.12;
+      spin.position.y = Math.sin(elapsed * 0.6) * 0.08;
+      gyro.tick(dt);
+    } else {
+      spin.rotation.y = Math.sin(elapsed * 0.22) * BALANCE_SWAY; // a standing object turns a little; it does not float
+    }
+    scene.environmentRotation.y = elapsed * GLINT_SPEED; // the studio turns, so highlights travel across the metal
+    const k = Math.min(1, dt * 3);
+    pointer.x += (pointer.tx - pointer.x) * k;
+    pointer.y += (pointer.ty - pointer.y) * k;
+    rig.rotation.y = pointer.x * 0.3;
+    rig.rotation.x = pointer.y * 0.2;
+  };
+  const present = () => {
+    renderer.render(scene, camera);
+    if (!shown) { shown = true; host.classList.add("is-3d"); }
+  };
+  const frame = (now) => {
+    const dt = Math.min((now - (last || now)) / 1000, 0.05);
+    last = now;
+    advance(dt);
+    present();
+  };
+  /* Reduced motion: no loop and no intro, but the model is still there as one settled frame. */
+  const renderStill = () => {
+    if (disposed) return;
+    elapsed = 0; // same simulated time every redraw, so a filter change never makes the pose jump
+    for (let i = 0; i < STILL_SETTLE_STEPS; i++) advance(STILL_STEP_S);
+    present();
+  };
+  const start = () => {
+    if (disposed || running || document.hidden || !inView || reduceMotionMq.matches) return;
+    running = true; last = 0;
+    renderer.setAnimationLoop(frame);
+  };
+  const stop = () => { running = false; renderer.setAnimationLoop(null); };
+
+  const resizeObs = new ResizeObserver(resize);
+  const viewObs = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; inView ? start() : stop(); });
+  const onVisibility = () => (document.hidden ? stop() : start());
+  const onTheme = () => { if (!disposed) applyColors(); };
+  const onMotion = (e) => { if (e.matches) { stop(); renderStill(); } else start(); };
+  const onLost = (e) => { e.preventDefault(); teardown(); };
+
+  function teardown(release = false) {
+    if (disposed) return;
+    disposed = true;
+    stop();
+    if (models) onHeroVisualChange = null;
+    host.classList.remove("is-3d");
+    resizeObs.disconnect(); viewObs.disconnect();
+    document.removeEventListener("visibilitychange", onVisibility);
+    document.removeEventListener("leadhub:theme", onTheme);
+    reduceMotionMq.removeEventListener("change", onMotion);
+    canvas.removeEventListener("webglcontextlost", onLost);
+    if (finePointer) removeEventListener("pointermove", onPointer);
+    gyro?.dispose();
+    goldMat.dispose();
+    envTarget.dispose();
+    models?.dispose();
+    renderer.dispose();
+    if (release) renderer.forceContextLoss(); // canvas is retired (e.g. login → app)
+  }
+
+  resizeObs.observe(host);
+  viewObs.observe(host);
+  document.addEventListener("visibilitychange", onVisibility);
+  document.addEventListener("leadhub:theme", onTheme);
+  reduceMotionMq.addEventListener("change", onMotion);
+  canvas.addEventListener("webglcontextlost", onLost);
+
+  resize();
+  // Everything is visible here on purpose: compiling up front keeps the hero intro and the first tab switch from stalling.
+  await renderer.compileAsync(scene, camera);
+  if (models) models.city.object.visible = false; // unraised towers must never reach the screen
+  if (models) onHeroVisualChange = () => { if (reduceMotionMq.matches) renderStill(); };
+  if (!disposed) { applyColors(); if (reduceMotionMq.matches) renderStill(); else start(); }
+  return { teardown, get running() { return running; }, get disposed() { return disposed; }, get drawCalls() { return renderer.info.render.calls; }, get anim() { return { ...anim }; } };
+}
+
+/* ===================================================== starfield backdrop */
+/* "Starfield Close": a fixed full-window tunnel of mint, jade and bone stars streaming past,
+   twinkling, slowly barrel-rolling; scrolling surges the drift and dives the camera, the cursor
+   steers the heading and pushes nearby stars aside. The recipe's torus and bloom composers only
+   ever render layers nothing is on (pure black), so the composite is drawn in one pass:
+   background + corner flames as a clip-space quad, then the additive stars. */
+const STARFIELD = {
+  count: 4200, width: 24, height: 16, depth: 30,
+  bgColor: "#000000", flameColor: "#ffffff", flameColor2: "#e3cdff", flameAmt: 0.2,
+  colorA: "#aef6cf", colorB: "#5fe6a0", colorC: "#eafff2",
+  opacity: 2, pointSize: 50, brightness: 1.85, drift: 2.35, twinkle: 1, spin: 0.03,
+  repelRadius: 5, repelStrength: 0.35, scrollPush: 8, scrollDrift: 6, scrollSpin: 0.1, parallax: 0.6,
+  cameraZ: 5, lookZ: -10, fadeDelayMs: 300, fadeMs: 1400, maxDt: 0.05, idleS: 3,
+  pointerEase: 0.12, activityEase: 0.06, scrollSmoothEase: 0.10, scrollCurrentEase: 0.06, mouseEase: 0.06,
+};
+
+function hexToVec3(THREE, hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return new THREE.Vector3(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+}
+
+const STARFIELD_VERTEX = `
+  uniform float uTime; uniform float uSize; uniform float uDrift; uniform float uDepth; uniform float uTwinkle;
+  uniform vec3 uCursor; uniform float uRepelRadius; uniform float uRepelStrength; uniform float uActivity;
+  uniform vec3 uColorA; uniform vec3 uColorB; uniform vec3 uColorC;
+  attribute float aScale; attribute float aPhase; attribute float aPalette; attribute float aBright;
+  varying vec3 vColor; varying float vTwinkle;
+  void main() {
+    vec3 pos = position;
+    pos.z = mod(pos.z + uDrift + (uDepth * 0.5), uDepth) - (uDepth * 0.5); // endless drift toward +Z
+    float tw = sin(uTime * 1.6 + aPhase * 6.2831);
+    vTwinkle = (1.0 - uTwinkle) + uTwinkle * (0.55 + 0.45 * tw);
+    vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+    vec3 toParticle = modelPosition.xyz - uCursor;
+    float dist = length(toParticle);
+    float falloff = smoothstep(uRepelRadius, 0.0, dist);
+    modelPosition.xyz += normalize(toParticle + vec3(0.0001)) * falloff * uRepelStrength * uActivity;
+    vec4 viewPosition = viewMatrix * modelPosition;
+    gl_Position = projectionMatrix * viewPosition;
+    gl_PointSize = uSize * aScale;
+    gl_PointSize *= (1.0 / -viewPosition.z);
+    vec3 base = aPalette < 0.5 ? uColorA : (aPalette < 1.5 ? uColorB : uColorC);
+    vColor = base * aBright;
+  }`;
+
+const STARFIELD_FRAGMENT = `
+  uniform float uOpacity; uniform float uBrightness;
+  varying vec3 vColor; varying float vTwinkle;
+  void main() {
+    vec2 uv = gl_PointCoord - 0.5;
+    float d = length(uv);
+    if (d > 0.5) discard;
+    float strength = pow(1.0 - d * 2.0, 4.0);
+    vec3 color = mix(vec3(0.0), vColor, strength);
+    gl_FragColor = vec4(color * uBrightness, strength * uOpacity * vTwinkle);
+  }`;
+
+function buildStars(THREE) {
+  const { count, width, height, depth } = STARFIELD;
+  const positions = new Float32Array(count * 3), palette = new Float32Array(count);
+  const bright = new Float32Array(count), scales = new Float32Array(count), phases = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3;
+    positions[i3] = (Math.random() - 0.5) * width;
+    positions[i3 + 1] = (Math.random() - 0.5) * height;
+    positions[i3 + 2] = (Math.random() - 0.5) * depth; // == depth, so the wrap is seamless
+    palette[i] = Math.floor(Math.random() * 3);
+    bright[i] = 0.7 + Math.random() * 0.6;
+    scales[i] = 0.5 + Math.pow(Math.random(), 1.4) * 2.5;
+    phases[i] = Math.random();
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("aScale", new THREE.Float32BufferAttribute(scales, 1));
+  geometry.setAttribute("aPhase", new THREE.Float32BufferAttribute(phases, 1));
+  geometry.setAttribute("aPalette", new THREE.Float32BufferAttribute(palette, 1));
+  geometry.setAttribute("aBright", new THREE.Float32BufferAttribute(bright, 1));
+  const uniforms = {
+    uTime: { value: 0 }, uSize: { value: STARFIELD.pointSize }, uOpacity: { value: 0 }, uDrift: { value: 0 },
+    uDepth: { value: depth }, uTwinkle: { value: STARFIELD.twinkle }, uCursor: { value: new THREE.Vector3() },
+    uRepelRadius: { value: STARFIELD.repelRadius }, uRepelStrength: { value: STARFIELD.repelStrength }, uActivity: { value: 0 },
+    uColorA: { value: hexToVec3(THREE, STARFIELD.colorA) }, uColorB: { value: hexToVec3(THREE, STARFIELD.colorB) },
+    uColorC: { value: hexToVec3(THREE, STARFIELD.colorC) }, uBrightness: { value: STARFIELD.brightness },
+  };
+  const material = new THREE.ShaderMaterial({
+    uniforms, vertexShader: STARFIELD_VERTEX, fragmentShader: STARFIELD_FRAGMENT,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const points = new THREE.Points(geometry, material);
+  points.frustumCulled = false; // drift and repel move the stars in the shader
+  const group = new THREE.Group();
+  group.add(points);
+  return { group, uniforms };
+}
+
+/* Background tint plus animated corner flames, drawn first under the additive stars. */
+function buildFlameBackdrop(THREE) {
+  const uniforms = {
+    iTime: { value: 0 }, uBg: { value: hexToVec3(THREE, STARFIELD.bgColor) },
+    uFlameA: { value: hexToVec3(THREE, STARFIELD.flameColor) }, uFlameB: { value: hexToVec3(THREE, STARFIELD.flameColor2) },
+    uFlameAmt: { value: STARFIELD.flameAmt },
+  };
+  const material = new THREE.ShaderMaterial({
+    uniforms, depthTest: false, depthWrite: false,
+    vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position, 1.0); }",
+    fragmentShader: `
+      uniform float iTime; uniform vec3 uBg; uniform vec3 uFlameA; uniform vec3 uFlameB; uniform float uFlameAmt;
+      varying vec2 vUv;
+      vec3 warp3d(vec3 pos, float t){ float curv=.8,a=1.9,b=0.7; pos*=2.;
+        pos.x+=curv*sin(t+a*pos.y)+t*b; pos.y+=curv*cos(t+a*pos.x);
+        pos.y+=curv*sin(t+a*pos.z)+t*b; pos.z+=curv*cos(t+a*pos.y);
+        pos.z+=curv*sin(t+a*pos.x)+t*b; pos.x+=curv*cos(t+a*pos.z);
+        return 0.5+0.5*cos(pos.xyz+vec3(1,2,4)); }
+      void main(){
+        vec2 uv = 2.*vUv - 1.;
+        vec3 w = pow(warp3d(vec3(uv.x, sin(uv.y), uv.y), iTime*1.5), vec3(1.5));
+        vec3 flame = 1.5*uFlameA*w.x; flame*=w.y; flame += uFlameB*w.z;
+        flame *= smoothstep(0.25, 1., abs(uv.y));
+        float md = smoothstep(-0.7, 1., -uv.y*uv.x); flame *= md*md;
+        vec3 bg = uBg * (1.0 - 0.4 * length(uv));
+        gl_FragColor = vec4(bg + flame*uFlameAmt, 1.);
+      }`,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  mesh.frustumCulled = false; // positioned in clip space
+  mesh.renderOrder = -1;
+  return { mesh, uniforms };
+}
+
+/* Cursor "void" in world space (on the z = 0 plane) and the double-damped scroll. */
+function createStarfieldInput(THREE, camera) {
+  const S = STARFIELD;
+  const pointer = { ndc: new THREE.Vector2(), active: false, lastMove: 0, world: new THREE.Vector3(), activity: 0 };
+  const mouseSmooth = { x: 0, y: 0 };
+  const scroll = { target: 0, smooth: 0, current: 0 };
+  const target = new THREE.Vector3(), dir = new THREE.Vector3();
+
+  const readScroll = () => {
+    const range = document.documentElement.scrollHeight - innerHeight;
+    scroll.target = range > 0 ? Math.min(Math.max(scrollY / range, 0), 1) : 0;
+  };
+  const onMove = (e) => {
+    pointer.ndc.set((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1));
+    pointer.active = true;
+    pointer.lastMove = performance.now();
+  };
+  const onOut = (e) => { if (!e.relatedTarget) pointer.active = false; }; // left the window, not just an element
+
+  const update = () => {
+    scroll.smooth += (scroll.target - scroll.smooth) * S.scrollSmoothEase;
+    scroll.current += (scroll.smooth - scroll.current) * S.scrollCurrentEase;
+    mouseSmooth.x += (pointer.ndc.x - mouseSmooth.x) * S.mouseEase;
+    mouseSmooth.y += (pointer.ndc.y - mouseSmooth.y) * S.mouseEase;
+    target.set(0, 0, 0);
+    if (pointer.active) {
+      dir.set(pointer.ndc.x, pointer.ndc.y, 0.5).unproject(camera).sub(camera.position).normalize();
+      const t = -camera.position.z / dir.z;
+      if (Math.abs(dir.z) > 1e-4 && t > 0 && Number.isFinite(t)) target.copy(camera.position).addScaledVector(dir, t);
+    }
+    pointer.world.lerp(target, S.pointerEase);
+    const idle = (performance.now() - pointer.lastMove) / 1000;
+    const want = pointer.active && idle < S.idleS ? 1 : 0;
+    pointer.activity += (want - pointer.activity) * S.activityEase;
+  };
+
+  addEventListener("mousemove", onMove, { passive: true });
+  document.addEventListener("mouseout", onOut);
+  addEventListener("scroll", readScroll, { passive: true });
+  return { pointer, mouseSmooth, scroll, update, readScroll };
+}
+
+async function createStarfield(canvas) {
+  const THREE = await import("/static/vendor/three.module.min.js");
+  const S = STARFIELD;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 80);
+  camera.position.set(0, 0, S.cameraZ);
+  const stars = buildStars(THREE);
+  const flames = buildFlameBackdrop(THREE);
+  scene.add(flames.mesh, stars.group);
+  const input = createStarfieldInput(THREE, camera);
+
+  const appearStart = performance.now();
+  let last = appearStart / 1000;
+  const step = (now, animate) => {
+    const t = now / 1000;
+    const dt = animate ? Math.max(0, Math.min(S.maxDt, t - last)) : 0; // a still frame does not advance
+    last = t;
+    if (animate) input.update();
+    const scroll = input.scroll.current, m = input.mouseSmooth;
+    stars.uniforms.uTime.value = t;
+    // Also wrapped here: the shader's mod gives the same picture and the float stays precise all day.
+    stars.uniforms.uDrift.value = (stars.uniforms.uDrift.value + dt * (S.drift + scroll * S.scrollDrift)) % S.depth;
+    stars.uniforms.uCursor.value.copy(input.pointer.world);
+    stars.uniforms.uActivity.value = input.pointer.activity;
+    camera.position.set(m.x * S.parallax, m.y * S.parallax, S.cameraZ - scroll * S.scrollPush);
+    camera.lookAt(m.x * S.parallax, m.y * S.parallax, S.lookZ);
+    const fade = animate ? Math.min(Math.max((now - appearStart - S.fadeDelayMs) / S.fadeMs, 0), 1) : 1;
+    stars.uniforms.uOpacity.value = fade * S.opacity;
+    stars.group.rotation.z += dt * (S.spin + scroll * S.scrollSpin);
+    flames.uniforms.iTime.value = t;
+    renderer.render(scene, camera);
+  };
+
+  const isDark = () => document.documentElement.dataset.theme !== "light";
+  const drawStill = () => { if (isDark() && !document.hidden) step(performance.now(), false); };
+  const syncLoop = () => {
+    const animate = isDark() && !document.hidden && !reduceMotionMq.matches;
+    if (animate) last = performance.now() / 1000; // no jump after a pause
+    renderer.setAnimationLoop(animate ? () => step(performance.now(), true) : null);
+    if (!animate && reduceMotionMq.matches) drawStill(); // one finished, motionless frame
+  };
+  const resize = () => {
+    const { clientWidth: w, clientHeight: h } = canvas;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    input.readScroll();
+    if (reduceMotionMq.matches) drawStill();
+  };
+
+  addEventListener("resize", resize, { passive: true });
+  document.addEventListener("visibilitychange", syncLoop);
+  document.addEventListener("leadhub:theme", () => { resize(); syncLoop(); });
+  reduceMotionMq.addEventListener("change", syncLoop);
+  canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); renderer.setAnimationLoop(null); });
+  canvas.addEventListener("webglcontextrestored", syncLoop);
+  resize();
+  await renderer.compileAsync(scene, camera);
+  syncLoop();
+}
+
+function scheduleStarfield() {
+  if (isLowEndDevice() || navigator.connection?.saveData || !webglAvailable()) return; // the page stays plain black
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 900));
+  idle(() => {
+    createStarfield($("#starfield")).catch((err) => console.warn("starfield backdrop unavailable", err));
+  }, { timeout: 2500 });
+}
+
+/* ================================================================ start */
+/* Last, so every module-level binding above (e.g. luxMounts) is initialised. */
+scheduleStarfield();
+if (/(?:^|;\s*)leadhub_hint=1/.test(document.cookie)) {
+  showApp().catch(() => { /* errors are rendered inline or lead to the login screen */ });
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>

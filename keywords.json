@@ -1,0 +1,37 @@
+{
+  "_comment": "Edit freely. Matching is case-insensitive on whole words/phrases. score = intent_hits*3 + topic_hits*2 (each list capped). Any exclude hit drops the post.",
+  "intent": [
+    "need", "needed", "needs", "looking for", "hiring", "[hiring]", "[task]", "seeking", "want someone",
+    "who can build", "who can make", "can someone build", "budget", "paid gig", "will pay",
+    "one-off", "one off", "one-time job", "one time job", "quick job", "small job", "small task", "gig",
+    "ищу", "ищем", "нужен", "нужна", "нужно", "нужны", "требуется", "требуются",
+    "кто может сделать", "кто сделает", "заказ", "оплата", "бюджет", "есть задача",
+    "разовая", "разовый", "разовое", "разовую", "единоразовая", "единоразовый", "единоразовое", "единоразовую",
+    "подработка", "подработку", "задача", "задачу"
+  ],
+  "topic": [
+    "telegram bot", "telegram-bot", "tg bot", "discord bot", "chatbot", "chat bot", "bot",
+    "python", "fastapi", "django", "flask", "scraper", "scraping", "parser", "parsing",
+    "automation", "automate", "script", "api integration", "integration",
+    "landing page", "landing", "website", "web site", "web app", "webapp", "wordpress", "shopify",
+    "frontend", "backend", "full stack", "fullstack", "developer", "programmer", "web developer",
+    "javascript", "typescript", "react", "node", "html", "css", "web design", "mobile app", "google sheets",
+    "телеграм бот", "телеграм-бот", "бот", "бота", "чат-бот", "чатбот", "парсер", "парсинг", "скрипт",
+    "автоматизация", "автоматизировать", "лендинг", "сайт", "сайта", "сайты", "веб-сайт", "интернет-магазин",
+    "программист", "разработчик", "разработка", "питон", "python-разработчик", "интеграция",
+    "верстка", "вёрстка", "верстку", "вёрстку", "верстальщик"
+  ],
+  "exclude": [
+    "[for hire]", "for hire", "[offer]", "seeking work", "i can help", "able to help", "available for hire", "available for work", "open to work",
+    "hire me", "my portfolio", "my services", "i am a developer", "i'm a developer", "i offer",
+    "resume", "cv attached", "seeking employment", "looking for work", "looking for paid work", "looking for a job",
+    "looking for projects", "looking for clients",
+    "ищу работу", "ищу заказы", "ищу проекты", "ищу клиентов", "резюме", "моё портфолио", "мое портфолио",
+    "предлагаю услуги", "возьму заказ", "возьмусь за", "выполню", "сделаю под ключ",
+    "#помогу", "#резюме", "мы студия",
+    "we buy usdt", "exchange rates", "want to make money", "daily income", "one good trade", "trading signal",
+    "любимую работу", "звучит как-то нереально", "поиск заказов вручную",
+    "#opentowork", "#ищуработу", "#cv",
+    "ищу удалённую работу", "ищу удаленную работу", "ищу подработку", "как находить заказчиков", "для поиска заказов"
+  ]
+}
